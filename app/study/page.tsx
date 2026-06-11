@@ -1,18 +1,73 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, CSSProperties } from 'react';
 import {
-  Send, Search, Edit3, Clock, BookOpen, Calculator,
-  PenTool, Lightbulb, Mic, Paperclip, ChevronRight,
-  Plus, X, Copy, Check, Volume2, Trash2, MicOff, Upload,
-  FileText, Award
+  Send, Search, Edit3, BookOpen, Calculator,
+  PenTool, Lightbulb, Mic, Paperclip,
+  Plus, X, Copy, Check, Volume2, Trash2, MicOff,
+  FileText,
 } from 'lucide-react';
 
-const SUBJECTS = [
+// ─── Types ───────────────────────────────────────────────────────────────────
 
+interface Message {
+  role: string;
+  content: string;
+  attachment?: string;
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  preview: string;
+  messages: Message[];
+  subject: string;
+  timestamp: number;
+}
+
+interface SessionGroup {
+  section: string;
+  items: ChatSession[];
+}
+
+interface QuickAction {
+  icon: React.ElementType;
+  label: string;
+  desc: string;
+  color: string;
+  bg: string;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionInstance extends EventTarget {
+  lang: string;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionInstance;
+    webkitSpeechRecognition?: new () => SpeechRecognitionInstance;
+  }
+}
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const SUBJECTS: string[] = [
+  'General',
+  'Mathematics',
+  'Physics',
+  'Chemistry',
+  'Computer Science',
 ];
 
-const QUICK_ACTIONS = [
+const QUICK_ACTIONS: QuickAction[] = [
   {
     icon: BookOpen,
     label: 'Explain a concept',
@@ -43,59 +98,69 @@ const QUICK_ACTIONS = [
   },
 ];
 
-// --- localStorage-based session helpers ---
+// ─── localStorage helpers ────────────────────────────────────────────────────
+
 const STORAGE_KEY = 'studyai_sessions';
 
-function generateId() {
+function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
-function loadSessions() {
+function loadSessions(): ChatSession[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch { return []; }
 }
 
-function saveSessions(sessions) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); } catch {}
+function saveSessions(sessions: ChatSession[]): void {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions)); } catch { }
 }
 
-function getSessionTitle(messages) {
-  const first = messages.find(m => m.role === 'user');
+function getSessionTitle(messages: Message[]): string {
+  const first = messages.find((m) => m.role === 'user');
   if (!first) return 'New chat';
   const text = first.content.replace(/^Help me with: /, '');
   return text.length > 50 ? text.slice(0, 50) + '…' : text;
 }
 
-function getSessionPreview(messages) {
-  const last = [...messages].reverse().find(m => m.role === 'assistant');
+function getSessionPreview(messages: Message[]): string {
+  const last = [...messages].reverse().find((m) => m.role === 'assistant');
   if (!last) return '';
   const text = last.content.replace(/\*\*/g, '').replace(/\n/g, ' ');
   return text.length > 60 ? text.slice(0, 60) + '…' : text;
 }
 
-function formatSessionTime(ts) {
+function formatSessionTime(ts: number): string {
   const d = new Date(ts);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
   if (d >= today) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   if (d >= yesterday) return 'Yesterday';
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
-function groupSessionsByDate(sessions) {
+function groupSessionsByDate(sessions: ChatSession[]): SessionGroup[] {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
-  const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const weekAgo = new Date(today);
+  weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const groups = [];
-  const todayItems = sessions.filter(s => new Date(s.timestamp) >= today);
-  const yesterdayItems = sessions.filter(s => { const d = new Date(s.timestamp); return d >= yesterday && d < today; });
-  const weekItems = sessions.filter(s => { const d = new Date(s.timestamp); return d >= weekAgo && d < yesterday; });
-  const olderItems = sessions.filter(s => new Date(s.timestamp) < weekAgo);
+  const groups: SessionGroup[] = [];
+  const todayItems = sessions.filter((s) => new Date(s.timestamp) >= today);
+  const yesterdayItems = sessions.filter((s) => {
+    const d = new Date(s.timestamp);
+    return d >= yesterday && d < today;
+  });
+  const weekItems = sessions.filter((s) => {
+    const d = new Date(s.timestamp);
+    return d >= weekAgo && d < yesterday;
+  });
+  const olderItems = sessions.filter((s) => new Date(s.timestamp) < weekAgo);
 
   if (todayItems.length) groups.push({ section: 'Today', items: todayItems });
   if (yesterdayItems.length) groups.push({ section: 'Yesterday', items: yesterdayItems });
@@ -103,6 +168,8 @@ function groupSessionsByDate(sessions) {
   if (olderItems.length) groups.push({ section: 'Older', items: olderItems });
   return groups;
 }
+
+// ─── Robot Avatar ─────────────────────────────────────────────────────────────
 
 function RobotAvatar() {
   return (
@@ -140,7 +207,9 @@ function RobotAvatar() {
   );
 }
 
-function formatMessage(content) {
+// ─── Message formatter ────────────────────────────────────────────────────────
+
+function formatMessage(content: string): string {
   let f = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   f = f.replace(/\*(.*?)\*/g, '<em>$1</em>');
   f = f.replace(/^### (.+)$/gm, '<h3 style="font-size:15px;font-weight:600;color:#1a1a1a;margin:12px 0 4px">$1</h3>');
@@ -159,28 +228,30 @@ function formatMessage(content) {
   return f;
 }
 
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export default function StudyAssistant() {
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "Hi! I'm your AI Study Assistant. Choose a topic below or ask me anything to get started!" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [subject, setSubject] = useState('General');
   const [isListening, setIsListening] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [showChat, setShowChat] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileContent, setFileContent] = useState('');
-  const [chatSessions, setChatSessions] = useState([]);
-  const [currentSessionId, setCurrentSessionId] = useState(generateId);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string>(generateId);
   const [historySearch, setHistorySearch] = useState('');
 
-  const bottomRef = useRef(null);
-  const inputRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const recognitionRef = useRef(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -193,9 +264,9 @@ export default function StudyAssistant() {
 
   // Auto-save current session whenever messages change (if there's user content)
   useEffect(() => {
-    const hasUserMsg = messages.some(m => m.role === 'user');
+    const hasUserMsg = messages.some((m) => m.role === 'user');
     if (!hasUserMsg || !showChat) return;
-    const session = {
+    const session: ChatSession = {
       id: currentSessionId,
       title: getSessionTitle(messages),
       preview: getSessionPreview(messages),
@@ -203,19 +274,19 @@ export default function StudyAssistant() {
       subject,
       timestamp: Date.now(),
     };
-    setChatSessions(prev => {
-      const filtered = prev.filter(s => s.id !== currentSessionId);
+    setChatSessions((prev) => {
+      const filtered = prev.filter((s) => s.id !== currentSessionId);
       const updated = [session, ...filtered];
       saveSessions(updated);
       return updated;
     });
   }, [messages]);
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const allowed = ['.pdf', '.ppt', '.pptx', '.doc', '.docx', '.txt'];
-    if (!allowed.some(ext => file.name.toLowerCase().endsWith(ext))) {
+    if (!allowed.some((ext) => file.name.toLowerCase().endsWith(ext))) {
       alert('Supported formats: PDF, PPT/PPTX, DOC/DOCX, TXT');
       return;
     }
@@ -227,11 +298,9 @@ export default function StudyAssistant() {
     let extractedText = '';
 
     try {
-      // For text files, read directly in the browser
       if (file.name.toLowerCase().endsWith('.txt')) {
         extractedText = await file.text();
       } else if (file.name.toLowerCase().endsWith('.pdf')) {
-        // Send the actual file to /api/parse-pdf to extract text
         const formData = new FormData();
         formData.append('file', file);
         const parseRes = await fetch('/api/parse-pdf', {
@@ -247,7 +316,7 @@ export default function StudyAssistant() {
       }
     } catch (err) {
       console.error('File parsing error:', err);
-      setMessages(prev => [...prev, {
+      setMessages((prev) => [...prev, {
         role: 'assistant',
         content: `⚠️ **Could not extract text from ${file.name}.** The file may be scanned or image-based. Please try a different file or paste the content manually.`
       }]);
@@ -255,10 +324,8 @@ export default function StudyAssistant() {
       return;
     }
 
-    // Store extracted text
     setFileContent(extractedText);
 
-    // Now send the extracted content to the AI for a proper summary
     try {
       const preview = extractedText.length > 15000
         ? extractedText.slice(0, 15000) + '\n\n[...content truncated for preview...]'
@@ -274,12 +341,12 @@ export default function StudyAssistant() {
         }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, {
+      setMessages((prev) => [...prev, {
         role: 'assistant',
         content: `📎 **Document uploaded:** ${file.name} (${extractedText.length.toLocaleString()} characters extracted)\n\n${data.reply || "I've read your document. Ask me anything about it!"}`
       }]);
     } catch {
-      setMessages(prev => [...prev, {
+      setMessages((prev) => [...prev, {
         role: 'assistant',
         content: `📎 **Document uploaded:** ${file.name} (${extractedText.length.toLocaleString()} characters extracted)\n\nI've read the document. Ask me anything about it!`
       }]);
@@ -295,21 +362,25 @@ export default function StudyAssistant() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const sendMessage = async (text) => {
-    const messageText = text || input;
+  // `text` is optional — when called from the send button/Enter key, it reads `input` state
+  const sendMessage = async (text?: string) => {
+    const messageText = text ?? input;
     if (!messageText.trim() || isLoading) return;
 
     setShowChat(true);
-    const userMessage = { role: 'user', content: messageText, attachment: uploadedFile ? fileName : undefined };
+    const userMessage: Message = {
+      role: 'user',
+      content: messageText,
+      attachment: uploadedFile ? fileName : undefined,
+    };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput('');
     setIsLoading(true);
 
     try {
-      // Build document context with actual extracted text
       let context = '';
-      let messageToSend = messageText;
+      const messageToSend = messageText;
       if (uploadedFile && fileContent) {
         const docText = fileContent.length > 30000
           ? fileContent.slice(0, 30000) + '\n\n[...content truncated...]'
@@ -341,13 +412,12 @@ Always structure responses clearly with examples and practice questions when hel
     setIsLoading(false);
   };
 
-  const handleQuickAction = (action) => {
+  const handleQuickAction = (action: QuickAction) => {
     sendMessage(`Help me with: ${action.label}`);
   };
 
   const startNewChat = () => {
     window.speechSynthesis?.cancel();
-    // Start a fresh session
     const newId = generateId();
     setCurrentSessionId(newId);
     setMessages([{ role: 'assistant', content: "Hi! I'm your AI Study Assistant. Ask me anything or upload a document to get started!" }]);
@@ -355,9 +425,9 @@ Always structure responses clearly with examples and practice questions when hel
     setShowChat(false);
   };
 
-  const deleteSession = (sessionId) => {
-    setChatSessions(prev => {
-      const updated = prev.filter(s => s.id !== sessionId);
+  const deleteSession = (sessionId: string) => {
+    setChatSessions((prev) => {
+      const updated = prev.filter((s) => s.id !== sessionId);
       saveSessions(updated);
       return updated;
     });
@@ -366,13 +436,13 @@ Always structure responses clearly with examples and practice questions when hel
     }
   };
 
-  const copyMessage = (content, index) => {
+  const copyMessage = (content: string, index: number) => {
     navigator.clipboard.writeText(content.replace(/<[^>]*>/g, ''));
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 1800);
   };
 
-  const speakMessage = (content) => {
+  const speakMessage = (content: string) => {
     if (!('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const plain = content.replace(/<[^>]*>/g, '').replace(/\n/g, ' ');
@@ -391,12 +461,19 @@ Always structure responses clearly with examples and practice questions when hel
       setIsListening(false);
       return;
     }
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    // Use a typed constructor via bracket access to avoid TS property errors
+    const SpeechRecognitionCtor = (
+      window as Window & { SpeechRecognition?: new () => SpeechRecognitionInstance; webkitSpeechRecognition?: new () => SpeechRecognitionInstance }
+    ).SpeechRecognition ?? (
+      window as Window & { webkitSpeechRecognition?: new () => SpeechRecognitionInstance }
+    ).webkitSpeechRecognition;
+
+    if (!SpeechRecognitionCtor) return;
+    const recognition = new SpeechRecognitionCtor();
     recognition.lang = 'en-US';
-    recognition.onresult = (e) => {
+    recognition.onresult = (e: SpeechRecognitionEvent) => {
       const transcript = e.results[0][0].transcript;
-      setInput(prev => prev + transcript);
+      setInput((prev) => prev + transcript);
     };
     recognition.onend = () => setIsListening(false);
     recognition.start();
@@ -404,9 +481,8 @@ Always structure responses clearly with examples and practice questions when hel
     setIsListening(true);
   };
 
-  const handleHistoryClick = (session) => {
+  const handleHistoryClick = (session: ChatSession) => {
     if (session.id === currentSessionId) return;
-    // Load the full session
     setCurrentSessionId(session.id);
     setMessages(session.messages || []);
     setSubject(session.subject || 'General');
@@ -416,12 +492,14 @@ Always structure responses clearly with examples and practice questions when hel
 
   // Filter sessions for search
   const filteredSessions = historySearch.trim()
-    ? chatSessions.filter(s =>
-        s.title.toLowerCase().includes(historySearch.toLowerCase()) ||
-        (s.preview || '').toLowerCase().includes(historySearch.toLowerCase())
-      )
+    ? chatSessions.filter((s) =>
+      s.title.toLowerCase().includes(historySearch.toLowerCase()) ||
+      (s.preview || '').toLowerCase().includes(historySearch.toLowerCase())
+    )
     : chatSessions;
   const groupedHistory = groupSessionsByDate(filteredSessions);
+
+  // ─── Styles ──────────────────────────────────────────────────────────────────
 
   const styles = {
     container: {
@@ -430,39 +508,39 @@ Always structure responses clearly with examples and practice questions when hel
       background: '#FAFAFA',
       fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
       overflow: 'hidden',
-    },
+    } as CSSProperties,
     mainPanel: {
       flex: 1,
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'column' as const,
       overflow: 'hidden',
       background: '#FFFFFF',
-    },
+    } as CSSProperties,
     historyPanel: {
       width: 300,
       borderLeft: '1px solid #F0F0F0',
       background: '#FFFFFF',
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'column' as const,
       overflow: 'hidden',
-    },
+    } as CSSProperties,
     historyHeader: {
       padding: '20px 20px 16px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       borderBottom: '1px solid #F5F5F5',
-    },
+    } as CSSProperties,
     historyTitle: {
       fontSize: 17,
       fontWeight: 600,
       color: '#111827',
       margin: 0,
-    },
+    } as CSSProperties,
     historyIcons: {
       display: 'flex',
       gap: 8,
-    },
+    } as CSSProperties,
     historyIconBtn: {
       background: 'none',
       border: 'none',
@@ -472,23 +550,23 @@ Always structure responses clearly with examples and practice questions when hel
       borderRadius: 6,
       display: 'flex',
       alignItems: 'center',
-    },
+    } as CSSProperties,
     historyList: {
       flex: 1,
-      overflowY: 'auto',
+      overflowY: 'auto' as const,
       padding: '0 0 16px',
-    },
+    } as CSSProperties,
     historySection: {
       padding: '16px 20px 6px',
-    },
+    } as CSSProperties,
     historySectionTitle: {
       fontSize: 12,
       fontWeight: 600,
       color: '#6B7280',
-      textTransform: 'uppercase',
+      textTransform: 'uppercase' as const,
       letterSpacing: '0.05em',
       marginBottom: 8,
-    },
+    } as CSSProperties,
     historyItem: {
       padding: '10px 20px',
       cursor: 'pointer',
@@ -497,37 +575,37 @@ Always structure responses clearly with examples and practice questions when hel
       display: 'flex',
       alignItems: 'flex-start',
       gap: 10,
-    },
+    } as CSSProperties,
     historyItemIcon: {
       marginTop: 2,
       color: '#9CA3AF',
       flexShrink: 0,
-    },
+    } as CSSProperties,
     historyItemContent: {
       flex: 1,
       minWidth: 0,
-    },
+    } as CSSProperties,
     historyItemTitle: {
       fontSize: 13.5,
       fontWeight: 500,
       color: '#111827',
       marginBottom: 2,
-      whiteSpace: 'nowrap',
+      whiteSpace: 'nowrap' as const,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-    },
+    } as CSSProperties,
     historyItemPreview: {
       fontSize: 12,
       color: '#9CA3AF',
-      whiteSpace: 'nowrap',
+      whiteSpace: 'nowrap' as const,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-    },
+    } as CSSProperties,
     historyItemTime: {
       fontSize: 11,
       color: '#9CA3AF',
       flexShrink: 0,
-    },
+    } as CSSProperties,
     viewAllBtn: {
       display: 'flex',
       alignItems: 'center',
@@ -541,51 +619,51 @@ Always structure responses clearly with examples and practice questions when hel
       width: '100%',
       borderTop: '1px solid #F5F5F5',
       marginTop: 8,
-    },
+    } as CSSProperties,
     chatArea: {
       flex: 1,
-      overflowY: 'auto',
+      overflowY: 'auto' as const,
       display: 'flex',
-      flexDirection: 'column',
-    },
+      flexDirection: 'column' as const,
+    } as CSSProperties,
     welcomeArea: {
       flex: 1,
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'column' as const,
       alignItems: 'center',
       justifyContent: 'center',
       padding: '40px 24px',
-    },
+    } as CSSProperties,
     greeting: {
       fontSize: 32,
       fontWeight: 700,
       color: '#111827',
       marginBottom: 8,
-      textAlign: 'center',
-    },
+      textAlign: 'center' as const,
+    } as CSSProperties,
     subGreeting: {
       fontSize: 16,
       color: '#6B7280',
       marginBottom: 40,
-      textAlign: 'center',
-    },
+      textAlign: 'center' as const,
+    } as CSSProperties,
     actionGrid: {
       display: 'grid',
       gridTemplateColumns: 'repeat(2, 1fr)',
       gap: 12,
       width: '100%',
       maxWidth: 560,
-    },
+    } as CSSProperties,
     actionCard: {
       padding: '18px 20px',
       borderRadius: 14,
       border: '1px solid #F0F0F0',
       cursor: 'pointer',
       background: '#FFFFFF',
-      textAlign: 'left',
+      textAlign: 'left' as const,
       transition: 'all 0.2s',
       boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-    },
+    } as CSSProperties,
     actionIcon: {
       width: 40,
       height: 40,
@@ -594,25 +672,25 @@ Always structure responses clearly with examples and practice questions when hel
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: 10,
-    },
+    } as CSSProperties,
     actionLabel: {
       fontSize: 14,
       fontWeight: 600,
       color: '#111827',
       marginBottom: 4,
-    },
+    } as CSSProperties,
     actionDesc: {
       fontSize: 12,
       color: '#9CA3AF',
       lineHeight: 1.4,
-    },
+    } as CSSProperties,
     messagesArea: {
       padding: '24px 32px',
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'column' as const,
       gap: 20,
-    },
-    messageBubble: (role) => ({
+    } as CSSProperties,
+    messageBubble: (role: string): CSSProperties => ({
       display: 'flex',
       justifyContent: role === 'user' ? 'flex-end' : 'flex-start',
       alignItems: 'flex-start',
@@ -628,8 +706,8 @@ Always structure responses clearly with examples and practice questions when hel
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-    },
-    bubble: (role) => ({
+    } as CSSProperties,
+    bubble: (role: string): CSSProperties => ({
       maxWidth: '72%',
       padding: '12px 16px',
       borderRadius: role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
@@ -644,7 +722,7 @@ Always structure responses clearly with examples and practice questions when hel
       gap: 12,
       marginTop: 6,
       paddingLeft: 4,
-    },
+    } as CSSProperties,
     msgActionBtn: {
       background: 'none',
       border: 'none',
@@ -654,25 +732,25 @@ Always structure responses clearly with examples and practice questions when hel
       display: 'flex',
       alignItems: 'center',
       transition: 'color 0.15s',
-    },
+    } as CSSProperties,
     inputSection: {
       padding: '0 24px 24px',
       borderTop: '1px solid #F5F5F5',
       background: '#FFFFFF',
-    },
+    } as CSSProperties,
     inputWrapper: {
       border: '1.5px solid #E5E7EB',
       borderRadius: 16,
       background: '#FFFFFF',
       transition: 'border-color 0.2s',
       overflow: 'hidden',
-    },
+    } as CSSProperties,
     inputRow: {
       display: 'flex',
       alignItems: 'center',
       padding: '4px 8px 4px 16px',
       gap: 8,
-    },
+    } as CSSProperties,
     textInput: {
       flex: 1,
       background: 'none',
@@ -682,13 +760,13 @@ Always structure responses clearly with examples and practice questions when hel
       color: '#111827',
       padding: '12px 0',
       fontFamily: 'inherit',
-    },
+    } as CSSProperties,
     inputActions: {
       display: 'flex',
       alignItems: 'center',
       gap: 4,
-    },
-    inputActionBtn: (active) => ({
+    } as CSSProperties,
+    inputActionBtn: (active: boolean): CSSProperties => ({
       display: 'flex',
       alignItems: 'center',
       gap: 6,
@@ -702,7 +780,7 @@ Always structure responses clearly with examples and practice questions when hel
       cursor: 'pointer',
       transition: 'all 0.15s',
     }),
-    sendBtn: (enabled) => ({
+    sendBtn: (enabled: boolean): CSSProperties => ({
       width: 38,
       height: 38,
       borderRadius: '50%',
@@ -717,11 +795,11 @@ Always structure responses clearly with examples and practice questions when hel
       transition: 'all 0.15s',
     }),
     disclaimer: {
-      textAlign: 'center',
+      textAlign: 'center' as const,
       fontSize: 12,
       color: '#9CA3AF',
       marginTop: 8,
-    },
+    } as CSSProperties,
     fileBar: {
       display: 'flex',
       alignItems: 'center',
@@ -729,13 +807,13 @@ Always structure responses clearly with examples and practice questions when hel
       padding: '8px 16px',
       background: '#F0FDF4',
       borderBottom: '1px solid #DCFCE7',
-    },
+    } as CSSProperties,
     loadingDot: {
       width: 8,
       height: 8,
       borderRadius: '50%',
       background: '#7C6FF7',
-    },
+    } as CSSProperties,
     subjectBadge: {
       padding: '4px 12px',
       borderRadius: 20,
@@ -745,7 +823,7 @@ Always structure responses clearly with examples and practice questions when hel
       fontWeight: 600,
       border: 'none',
       cursor: 'pointer',
-    },
+    } as CSSProperties,
   };
 
   return (
@@ -758,7 +836,7 @@ Always structure responses clearly with examples and practice questions when hel
           padding: '10px 24px', borderBottom: '1px solid #F5F5F5',
           overflowX: 'auto', flexShrink: 0,
         }}>
-          {SUBJECTS.map(s => (
+          {SUBJECTS.map((s) => (
             <button
               key={s}
               onClick={() => setSubject(s)}
@@ -790,7 +868,7 @@ Always structure responses clearly with examples and practice questions when hel
           {!showChat ? (
             <div style={styles.welcomeArea}>
               <RobotAvatar />
-              <h1 style={styles.greeting}>Hello, bachooooo! 👋</h1>
+              <h1 style={styles.greeting}>Hello, vedansh  👋</h1>
               <p style={styles.subGreeting}>How can I help you with your studies today?</p>
               <div style={styles.actionGrid}>
                 {QUICK_ACTIONS.map((action) => {
@@ -800,12 +878,12 @@ Always structure responses clearly with examples and practice questions when hel
                       key={action.label}
                       onClick={() => handleQuickAction(action)}
                       style={styles.actionCard}
-                      onMouseEnter={e => {
+                      onMouseEnter={(e) => {
                         e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
                         e.currentTarget.style.borderColor = '#E0E0E0';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
-                      onMouseLeave={e => {
+                      onMouseLeave={(e) => {
                         e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
                         e.currentTarget.style.borderColor = '#F0F0F0';
                         e.currentTarget.style.transform = 'none';
@@ -854,8 +932,8 @@ Always structure responses clearly with examples and practice questions when hel
                           onClick={() => copyMessage(msg.content, i)}
                           style={styles.msgActionBtn}
                           title="Copy"
-                          onMouseEnter={e => e.currentTarget.style.color = '#6B7280'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#6B7280')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#D1D5DB')}
                         >
                           {copiedIndex === i
                             ? <Check size={14} style={{ color: '#22C55E' }} />
@@ -865,8 +943,8 @@ Always structure responses clearly with examples and practice questions when hel
                           onClick={() => speakMessage(msg.content)}
                           style={styles.msgActionBtn}
                           title="Speak"
-                          onMouseEnter={e => e.currentTarget.style.color = '#6B7280'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#6B7280')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#D1D5DB')}
                         >
                           <Volume2 size={14} />
                         </button>
@@ -887,7 +965,7 @@ Always structure responses clearly with examples and practice questions when hel
                   </div>
                   <div style={{ ...styles.bubble('assistant'), padding: '14px 18px' }}>
                     <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-                      {[0, 150, 300].map(delay => (
+                      {[0, 150, 300].map((delay) => (
                         <div
                           key={delay}
                           style={{
@@ -900,6 +978,7 @@ Always structure responses clearly with examples and practice questions when hel
                   </div>
                 </div>
               )}
+
               <div ref={bottomRef} />
             </div>
           )}
@@ -925,9 +1004,9 @@ Always structure responses clearly with examples and practice questions when hel
               <input
                 ref={inputRef}
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder={uploadedFile ? `Ask about ${fileName}...` : "Message StudyAI..."}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                placeholder={uploadedFile ? `Ask about ${fileName}...` : 'Message StudyAI...'}
                 style={styles.textInput}
               />
             </div>
@@ -971,6 +1050,7 @@ Always structure responses clearly with examples and practice questions when hel
           <p style={styles.disclaimer}>StudyAI can make mistakes. Please double-check important information.</p>
         </div>
       </div>
+
       {/* History Panel */}
       <div style={styles.historyPanel}>
         <div style={styles.historyHeader}>
@@ -996,7 +1076,7 @@ Always structure responses clearly with examples and practice questions when hel
             <Search size={14} color="#9CA3AF" />
             <input
               value={historySearch}
-              onChange={e => setHistorySearch(e.target.value)}
+              onChange={(e) => setHistorySearch(e.target.value)}
               placeholder="Search chats..."
               style={{
                 flex: 1, border: 'none', background: 'none', outline: 'none',
@@ -1032,8 +1112,8 @@ Always structure responses clearly with examples and practice questions when hel
                     ...styles.historyItem,
                     background: session.id === currentSessionId ? '#F0EFFE' : 'transparent',
                   }}
-                  onMouseEnter={e => { if (session.id !== currentSessionId) e.currentTarget.style.background = '#F9F9FB'; }}
-                  onMouseLeave={e => { if (session.id !== currentSessionId) e.currentTarget.style.background = 'transparent'; }}
+                  onMouseEnter={(e) => { if (session.id !== currentSessionId) e.currentTarget.style.background = '#F9F9FB'; }}
+                  onMouseLeave={(e) => { if (session.id !== currentSessionId) e.currentTarget.style.background = 'transparent'; }}
                 >
                   <button
                     onClick={() => handleHistoryClick(session)}
@@ -1059,8 +1139,8 @@ Always structure responses clearly with examples and practice questions when hel
                     onClick={(e) => { e.stopPropagation(); deleteSession(session.id); }}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#D1D5DB', padding: 4, borderRadius: 4, display: 'flex', flexShrink: 0 }}
                     title="Delete chat"
-                    onMouseEnter={e => e.currentTarget.style.color = '#EF4444'}
-                    onMouseLeave={e => e.currentTarget.style.color = '#D1D5DB'}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#EF4444')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#D1D5DB')}
                   >
                     <Trash2 size={13} />
                   </button>

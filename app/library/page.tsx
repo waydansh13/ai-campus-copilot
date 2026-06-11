@@ -99,7 +99,7 @@ export default function SmartLibraryPage() {
       if (b) setBorrowedBooks(JSON.parse(b));
       if (n) setNotes(JSON.parse(n));
       if (p) setPapers(JSON.parse(p));
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   useEffect(() => { localStorage.setItem('sl_borrowedBooks', JSON.stringify(borrowedBooks)); }, [borrowedBooks]);
@@ -356,7 +356,7 @@ export default function SmartLibraryPage() {
             style={{ background: 'none', border: 'none', color: '#8585a8', cursor: 'pointer', padding: '8px', borderRadius: '6px' }}
             className="md:hidden"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
           </button>
           <div className="hidden md:flex" style={{ alignItems: 'center', gap: '6px' }}>
             <GraduationCap size={16} color="#7c3aed" />
@@ -1098,7 +1098,7 @@ function Section({
   badge?: string;
   color: string;
   children: React.ReactNode;
-  sectionRef?: React.RefObject<HTMLDivElement>;
+  sectionRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   return (
     <section id={id} ref={sectionRef} style={{ marginBottom: '44px', scrollMarginTop: '80px' }}>
