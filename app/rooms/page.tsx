@@ -360,18 +360,24 @@ function CreateRoomModal({ onClose, onCreated }: { onClose: () => void; onCreate
     const [form, setForm] = useState({ name: '', subject: 'Computer Science', description: '', color: 'blue' });
     const [creating, setCreating] = useState(false);
 
+    const [createError, setCreateError] = useState<string | null>(null);
+
     const handleCreate = async () => {
         if (!form.name.trim()) return;
         setCreating(true);
+        setCreateError(null);
         try {
-            await fetch('/api/rooms', {
+            const res = await fetch('/api/rooms', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'create', ...form }),
             });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to create room');
             onCreated();
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to create room:', e);
+            setCreateError(e.message || 'Something went wrong. Please try again.');
         }
         setCreating(false);
     };
@@ -431,6 +437,11 @@ function CreateRoomModal({ onClose, onCreated }: { onClose: () => void; onCreate
                             ))}
                         </div>
                     </div>
+                    {createError && (
+                        <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5">
+                            {createError}
+                        </p>
+                    )}
                     <div className="flex gap-3 pt-2">
                         <button onClick={onClose} className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-3 rounded-xl font-medium transition-colors">
                             Cancel

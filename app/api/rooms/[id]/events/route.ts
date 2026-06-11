@@ -1,4 +1,4 @@
-import { sseClients, generateId } from '../../store';
+import { sseClients, generateId } from "..//../store";
 
 // Prevent Next.js from caching this route
 export const dynamic = 'force-dynamic';

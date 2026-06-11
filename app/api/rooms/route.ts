@@ -16,7 +16,13 @@ export async function GET() {
         return Response.json({ error: error.message }, { status: 500 });
     }
 
-    return Response.json(data ?? []);
+    return Response.json(
+        (data ?? []).map(room => ({
+            ...room,
+            activeUsers: [],
+            messages: [],
+        }))
+    );
 }
 
 // POST /api/rooms — all actions persist directly to Supabase
@@ -32,7 +38,15 @@ export async function POST(req: NextRequest) {
 
                 const { data, error } = await supabase
                     .from('rooms')
-                    .insert({ id, name, subject, description, color, notes: '', messages: [] })
+                    .insert({
+                        id,
+                        name,
+                        subject,
+                        description,
+                        color,
+                        notes: '',
+                        created_at: new Date().toISOString(),
+                    })
                     .select();
 
                 if (error) return Response.json({ error: error.message }, { status: 500 });
@@ -145,7 +159,11 @@ export async function POST(req: NextRequest) {
                     .single();
 
                 if (error || !data) return Response.json({ error: 'Room not found' }, { status: 404 });
-                return Response.json({ ...data, activeUsers: [] });
+                return Response.json({
+                    ...data,
+                    activeUsers: [],
+                    messages: [],
+                });
             }
 
             case 'delete': {
