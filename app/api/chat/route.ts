@@ -1,13 +1,19 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getGeminiKey } from "@/lib/gemini";
 import { NextRequest } from "next/server";
+import { GEMINI_KEYS } from "@/lib/gemini";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(
+  getGeminiKey()
+);
 
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      return Response.json({ reply: "GEMINI_API_KEY is missing." });
-    }
+    if (GEMINI_KEYS.length === 0) {
+  return Response.json({
+    reply: "No Gemini API keys configured."
+  });
+}
 
     const { message, history = [], systemPrompt } = await req.json();
 

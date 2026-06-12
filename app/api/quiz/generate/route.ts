@@ -1,6 +1,6 @@
 // src/app/api/quiz/generate/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-
+import { getGeminiKey } from "@/lib/gemini";
 const GEMINI_MODEL = 'gemini-2.5-flash';
 
 export async function POST(req: NextRequest) {
@@ -12,7 +12,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'topic or uploadedFile is required' }, { status: 400 });
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        
+
+        const apiKey = getGeminiKey();
         if (!apiKey) {
             return NextResponse.json(
                 { error: 'GEMINI_API_KEY environment variable is not set' },
