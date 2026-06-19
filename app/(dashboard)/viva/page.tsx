@@ -7,6 +7,30 @@ import {
   Zap, MessageSquare, Activity, Eye, EyeOff,
 } from 'lucide-react';
 
+// ─── Neon Dark Theme Constants ────────────────────────────────────────────────
+const NEON = '#00F0FF';
+const NEON_DIM = 'rgba(0,240,255,0.6)';
+const NEON_BG = 'rgba(0,240,255,0.06)';
+const NEON_BORDER = 'rgba(0,240,255,0.15)';
+const NEON_GLOW = '0 0 20px rgba(0,240,255,0.25)';
+const BG = '#09090B';
+const BG_SUBTLE = '#0D0D12';
+const CARD = '#111116';
+const CARD_ELEVATED = '#16161D';
+const TEXT = '#F0F2F5';
+const TEXT_SEC = '#7A8BA0';
+const TEXT_DIM = '#4A5568';
+const BORDER = 'rgba(255,255,255,0.06)';
+const BORDER_HOVER = 'rgba(255,255,255,0.12)';
+
+const SUCCESS = '#34D399';
+const SUCCESS_DIM = 'rgba(52,211,153,0.12)';
+const DANGER = '#EF4444';
+const DANGER_DIM = 'rgba(239,68,68,0.12)';
+const WARNING = '#FBBF24';
+const WARNING_DIM = 'rgba(251,191,36,0.12)';
+const WARNING_BORDER = 'rgba(251,191,36,0.25)';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Message {
   role: 'tutor' | 'student';
@@ -78,7 +102,7 @@ function Particles({ count = 20 }: { count?: number }) {
           width: p.size,
           height: p.size,
           borderRadius: '50%',
-          background: '#7C6FF7',
+          background: NEON,
           opacity: p.opacity,
           animationName: 'float', animationDuration: `${p.dur}s`, animationTimingFunction: 'ease-in-out', animationDelay: `${p.delay}s`, animationIterationCount: 'infinite', animationDirection: 'alternate',
         }} />
@@ -125,13 +149,13 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
   const isThinkingExpr = expression === 'thinking' || thinking;
   const isListeningExpr = listening;
 
-  // Ring color
-  const ringColor = thinking ? '#F59E0B'
-    : listening ? '#22C55E'
-      : talking ? '#7C6FF7'
-        : isHappy ? '#3B82F6'
-          : isSad ? '#EF4444'
-            : '#7C6FF7';
+  // Ring color — neon themed
+  const ringColor = thinking ? WARNING
+    : listening ? SUCCESS
+      : talking ? NEON
+        : isHappy ? '#60A5FA'
+          : isSad ? DANGER
+            : NEON;
 
   // Eye Y position (blink = closed)
   const eyeOpenRy = 5.5;
@@ -167,7 +191,7 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      {/* Pulse rings — FIX: use animationName + animationDuration etc separately, never mix shorthand+longhand */}
+      {/* Pulse rings */}
       {(talking || listening || thinking) && [0, 1, 2].map(i => (
         <div key={i} style={{
           position: 'absolute',
@@ -187,7 +211,7 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
       ))}
 
       {/* SVG Face */}
-      <svg viewBox="0 0 200 200" width="100%" height="100%" style={{ filter: 'drop-shadow(0 6px 20px rgba(124,111,247,0.25))' }}>
+      <svg viewBox="0 0 200 200" width="100%" height="100%" style={{ filter: `drop-shadow(0 6px 20px rgba(0,240,255,0.2))` }}>
         <defs>
           <radialGradient id="faceGrad" cx="45%" cy="38%" r="58%">
             <stop offset="0%" stopColor="#fde8c8" />
@@ -246,34 +270,22 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
         />
 
         {/* Eyes — blink via eyeRy */}
-        {/* Left eye white */}
         <ellipse cx="80" cy="92" rx="10" ry={blink ? 1 : 8} fill="white" style={{ transition: 'ry 0.06s ease' }} />
-        {/* Left iris */}
         <ellipse cx="80" cy="93" rx={blink ? 0 : 5.5} ry={eyeRy} fill={ringColor} style={{ transition: 'ry 0.06s ease' }} />
-        {/* Left pupil */}
         <ellipse cx="80" cy="93" rx={blink ? 0 : 2.5} ry={blink ? 0 : 3} fill="#0f0e1e" style={{ transition: 'ry 0.06s ease' }} />
-        {/* Left eye glint */}
         {!blink && <circle cx="82" cy="91" r="1.2" fill="white" opacity="0.9" />}
-        {/* Left eyelid (blink) */}
         <ellipse cx="80" cy="92" rx="10" ry={blink ? 7.5 : 0} fill="url(#faceGrad)" style={{ transition: 'ry 0.06s ease' }} />
 
-        {/* Right eye white */}
         <ellipse cx="120" cy="92" rx="10" ry={blink ? 1 : 8} fill="white" style={{ transition: 'ry 0.06s ease' }} />
-        {/* Right iris */}
         <ellipse cx="120" cy="93" rx={blink ? 0 : 5.5} ry={eyeRy} fill={ringColor} style={{ transition: 'ry 0.06s ease' }} />
-        {/* Right pupil */}
         <ellipse cx="120" cy="93" rx={blink ? 0 : 2.5} ry={blink ? 0 : 3} fill="#0f0e1e" style={{ transition: 'ry 0.06s ease' }} />
-        {/* Right eye glint */}
         {!blink && <circle cx="122" cy="91" r="1.2" fill="white" opacity="0.9" />}
-        {/* Right eyelid (blink) */}
         <ellipse cx="120" cy="92" rx="10" ry={blink ? 7.5 : 0} fill="url(#faceGrad)" style={{ transition: 'ry 0.06s ease' }} />
 
         {/* Glasses frames */}
         <rect x="66" y="83" width="28" height="17" rx="6" stroke={ringColor} fill={`${ringColor}15`} strokeWidth="2" />
         <rect x="106" y="83" width="28" height="17" rx="6" stroke={ringColor} fill={`${ringColor}15`} strokeWidth="2" />
-        {/* Glasses bridge */}
         <line x1="94" y1="91" x2="106" y2="91" stroke={ringColor} strokeWidth="2" />
-        {/* Glasses arms */}
         <line x1="66" y1="91" x2="56" y2="94" stroke={ringColor} strokeWidth="1.5" strokeLinecap="round" />
         <line x1="134" y1="91" x2="144" y2="94" stroke={ringColor} strokeWidth="1.5" strokeLinecap="round" />
 
@@ -297,11 +309,9 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
           strokeLinecap="round"
           style={{ transition: talking ? 'none' : 'd 0.25s ease' }}
         />
-        {/* Teeth when talking wide open */}
         {talking && mouthFrame % 2 === 0 && (
           <ellipse cx="100" cy="126" rx="10" ry="4.5" fill="white" opacity="0.92" />
         )}
-        {/* Inner mouth */}
         {talking && (
           <ellipse cx="100" cy="126" rx="9" ry="3.5" fill="#7c3a3a" opacity="0.5" />
         )}
@@ -309,17 +319,17 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
         {/* Thinking bubble */}
         {thinking && (
           <>
-            <circle cx="140" cy="48" r="12" fill="#FFFBEB" stroke="#FDE68A" strokeWidth="1.5" />
+            <circle cx="140" cy="48" r="12" fill={WARNING_DIM} stroke={WARNING} strokeWidth="1.5" />
             <text x="140" y="53" textAnchor="middle" fontSize="13">🧠</text>
-            <circle cx="128" cy="62" r="4" fill="#FFFBEB" stroke="#FDE68A" strokeWidth="1" />
-            <circle cx="133" cy="54" r="2.5" fill="#FFFBEB" stroke="#FDE68A" strokeWidth="1" />
+            <circle cx="128" cy="62" r="4" fill={WARNING_DIM} stroke={WARNING} strokeWidth="1" />
+            <circle cx="133" cy="54" r="2.5" fill={WARNING_DIM} stroke={WARNING} strokeWidth="1" />
           </>
         )}
 
         {/* Listening indicator */}
         {listening && (
           <>
-            <circle cx="140" cy="48" r="12" fill="#F0FDF4" stroke="#86EFAC" strokeWidth="1.5" />
+            <circle cx="140" cy="48" r="12" fill={SUCCESS_DIM} stroke={SUCCESS} strokeWidth="1.5" />
             <text x="140" y="53" textAnchor="middle" fontSize="13">🎧</text>
           </>
         )}
@@ -344,7 +354,7 @@ function ProfessorFace({ talking, listening, thinking, expression }: {
 }
 
 // ─── Waveform ─────────────────────────────────────────────────────────────────
-function Waveform({ active, color = '#7C6FF7', bars = 12 }: { active: boolean; color?: string; bars?: number }) {
+function Waveform({ active, color = NEON, bars = 12 }: { active: boolean; color?: string; bars?: number }) {
   const heights = [0.3, 0.5, 0.8, 1, 0.7, 0.9, 0.6, 0.85, 0.5, 0.75, 0.4, 0.65];
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 2.5, height: 28 }}>
@@ -363,9 +373,9 @@ function Waveform({ active, color = '#7C6FF7', bars = 12 }: { active: boolean; c
 
 // ─── Score Badge ──────────────────────────────────────────────────────────────
 function ScoreBadge({ score }: { score: number }) {
-  const color = score >= 7 ? '#16A34A' : score >= 5 ? '#D97706' : '#DC2626';
-  const bg = score >= 7 ? '#F0FDF4' : score >= 5 ? '#FFFBEB' : '#FEF2F2';
-  const border = score >= 7 ? '#BBF7D0' : score >= 5 ? '#FDE68A' : '#FECACA';
+  const color = score >= 7 ? SUCCESS : score >= 5 ? WARNING : DANGER;
+  const bg = score >= 7 ? SUCCESS_DIM : score >= 5 ? WARNING_DIM : DANGER_DIM;
+  const border = score >= 7 ? 'rgba(52,211,153,0.3)' : score >= 5 ? WARNING_BORDER : 'rgba(239,68,68,0.3)';
   return (
     <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 800, background: bg, color, border: `1px solid ${border}`, letterSpacing: '0.03em' }}>
       {score}/10
@@ -376,12 +386,12 @@ function ScoreBadge({ score }: { score: number }) {
 // ─── Sentiment Chip ───────────────────────────────────────────────────────────
 function SentimentChip({ sentiment }: { sentiment: string }) {
   const map: Record<string, { icon: string; color: string }> = {
-    confident: { icon: '💪', color: '#2563EB' },
-    hesitant: { icon: '🤔', color: '#D97706' },
-    confused: { icon: '😕', color: '#DC2626' },
-    nervous: { icon: '😰', color: '#7C3AED' },
-    good: { icon: '😊', color: '#16A34A' },
-    neutral: { icon: '😐', color: '#6B7280' },
+    confident: { icon: '💪', color: '#60A5FA' },
+    hesitant: { icon: '🤔', color: WARNING },
+    confused: { icon: '😕', color: DANGER },
+    nervous: { icon: '😰', color: '#A78BFA' },
+    good: { icon: '😊', color: SUCCESS },
+    neutral: { icon: '😐', color: TEXT_SEC },
   };
   const s = map[sentiment?.toLowerCase()] || map.neutral;
   return (
@@ -405,10 +415,10 @@ function ChatBubble({ msg, isNew }: { msg: Message; isNew?: boolean }) {
       <div style={{
         width: 32, height: 32, borderRadius: '50%', flexShrink: 0, marginTop: 2,
         background: isTutor
-          ? 'linear-gradient(135deg, #7C6FF7, #3B82F6)'
-          : 'linear-gradient(135deg, #475569, #334155)',
+          ? `linear-gradient(135deg, ${NEON}, #3B82F6)`
+          : `linear-gradient(135deg, ${TEXT_DIM}, #334155)`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: isTutor ? '0 0 12px rgba(124,111,247,0.3)' : 'none',
+        boxShadow: isTutor ? `0 0 12px rgba(0,240,255,0.3)` : 'none',
         fontSize: 13,
       }}>
         {isTutor ? '🎓' : '👤'}
@@ -417,24 +427,24 @@ function ChatBubble({ msg, isNew }: { msg: Message; isNew?: boolean }) {
       <div style={{ maxWidth: '78%' }}>
         <span style={{
           fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-          color: isTutor ? '#7C6FF7' : '#9CA3AF', marginBottom: 4, display: 'block',
+          color: isTutor ? NEON : TEXT_DIM, marginBottom: 4, display: 'block',
         }}>
           {isTutor ? 'Prof. Charles' : 'You'}
-          {msg.type === 'followup' && <span style={{ marginLeft: 6, color: '#D97706', fontSize: 9 }}>FOLLOW-UP</span>}
-          {msg.type === 'feedback' && <span style={{ marginLeft: 6, color: '#16A34A', fontSize: 9 }}>FEEDBACK</span>}
+          {msg.type === 'followup' && <span style={{ marginLeft: 6, color: WARNING, fontSize: 9 }}>FOLLOW-UP</span>}
+          {msg.type === 'feedback' && <span style={{ marginLeft: 6, color: SUCCESS, fontSize: 9 }}>FEEDBACK</span>}
         </span>
         <div style={{
           padding: '10px 14px', borderRadius: isTutor ? '4px 14px 14px 14px' : '14px 4px 14px 14px',
           background: isTutor
-            ? isThinking ? '#FFFBEB' : '#F5F3FF'
-            : '#F1F5F9',
+            ? isThinking ? WARNING_DIM : CARD_ELEVATED
+            : 'rgba(255,255,255,0.04)',
           border: `1px solid ${isTutor
-            ? isThinking ? '#FDE68A' : '#DDD6FE'
-            : '#E2E8F0'}`,
-          fontSize: 13.5, color: '#1E293B', lineHeight: 1.65,
+            ? isThinking ? WARNING_BORDER : BORDER
+            : BORDER_HOVER}`,
+          fontSize: 13.5, color: TEXT, lineHeight: 1.65,
         }}>
           {isThinking ? (
-            <span style={{ color: '#D97706', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: WARNING, fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ animationName: 'spin', animationDuration: '1.5s', animationTimingFunction: 'linear', animationIterationCount: 'infinite', display: 'inline-block' }}>🧠</span>
               Evaluating your response…
             </span>
@@ -442,11 +452,9 @@ function ChatBubble({ msg, isNew }: { msg: Message; isNew?: boolean }) {
             msg.text
           )}
         </div>
-        {msg.score !== undefined && (
-          <div style={{ marginTop: 5, display: 'flex', justifyContent: isTutor ? 'flex-start' : 'flex-end' }}>
-            <ScoreBadge score={msg.score} />
-          </div>
-        )}
+        {/* Score badges are intentionally never rendered inline during the
+            session — all scoring is withheld and only shown in the final
+            summary screen at the end of the viva. */}
       </div>
     </div>
   );
@@ -456,17 +464,17 @@ function ChatBubble({ msg, isNew }: { msg: Message; isNew?: boolean }) {
 function LiveTranscript({ text, interim }: { text: string; interim: string }) {
   return (
     <div style={{
-      background: '#F0FDF4', border: '1px solid #86EFAC',
+      background: SUCCESS_DIM, border: `1px solid rgba(52,211,153,0.3)`,
       borderRadius: 12, padding: '10px 14px', marginBottom: 10,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', animationName: 'breathe', animationDuration: '0.8s', animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite', animationDirection: 'alternate' }} />
-        <span style={{ fontSize: 10, color: '#16A34A', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Transcript</span>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: SUCCESS, animationName: 'breathe', animationDuration: '0.8s', animationTimingFunction: 'ease-in-out', animationIterationCount: 'infinite', animationDirection: 'alternate' }} />
+        <span style={{ fontSize: 10, color: SUCCESS, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Live Transcript</span>
       </div>
-      <p style={{ fontSize: 13, color: '#1E293B', margin: 0, lineHeight: 1.6 }}>
+      <p style={{ fontSize: 13, color: TEXT, margin: 0, lineHeight: 1.6 }}>
         {text && <span>{text} </span>}
-        {interim && <span style={{ color: '#64748B', fontStyle: 'italic' }}>{interim}</span>}
-        {!text && !interim && <span style={{ color: '#94A3B8', fontStyle: 'italic' }}>Listening — speak now…</span>}
+        {interim && <span style={{ color: TEXT_SEC, fontStyle: 'italic' }}>{interim}</span>}
+        {!text && !interim && <span style={{ color: TEXT_DIM, fontStyle: 'italic' }}>Listening — speak now…</span>}
       </p>
     </div>
   );
@@ -474,7 +482,7 @@ function LiveTranscript({ text, interim }: { text: string; interim: string }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function VivaTutor() {
-  const [topic, setTopic] = useState(TOPICS[0]);
+  const [topic, setTopic] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [isCustom, setIsCustom] = useState(false);
   const [level, setLevel] = useState('Undergraduate');
@@ -482,6 +490,10 @@ export default function VivaTutor() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadedContent, setUploadedContent] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [detectedTopic, setDetectedTopic] = useState('');
+  const [detectedSubtopics, setDetectedSubtopics] = useState<string[]>([]);
+  const [analyzeError, setAnalyzeError] = useState('');
 
   const [phase, setPhase] = useState<'setup' | 'session' | 'done'>('setup');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -496,7 +508,6 @@ export default function VivaTutor() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
-  const [currentEval, setCurrentEval] = useState<EvalResult | null>(null);
   const [showTextInput, setShowTextInput] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
   const [error, setError] = useState('');
@@ -520,7 +531,7 @@ export default function VivaTutor() {
   const silenceTimerRef = useRef<any>(null);
   const isListeningRef = useRef(false);
 
-  const getTopicLabel = () => isCustom && customTopic.trim() ? customTopic.trim() : topic;
+  const getTopicLabel = () => uploadedFile ? (detectedTopic || 'Uploaded Document') : (isCustom && customTopic.trim() ? customTopic.trim() : topic);
   const formatTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
   useEffect(() => {
@@ -541,7 +552,7 @@ export default function VivaTutor() {
     }
   }, [history]);
 
-  // Accumulated transcript ref — avoids stale closure inside onresult
+  // Accumulated transcript ref
   const transcriptRef = useRef('');
 
   useEffect(() => {
@@ -557,7 +568,6 @@ export default function VivaTutor() {
     rec.onresult = (e: any) => {
       let finalText = '';
       let interimText = '';
-      // Scan ALL results from index 0 each time for reliability
       for (let i = 0; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
           finalText += e.results[i][0].transcript + ' ';
@@ -566,15 +576,13 @@ export default function VivaTutor() {
         }
       }
       if (finalText.trim()) {
-        // Accumulate using ref — no stale closure problem
         transcriptRef.current = (transcriptRef.current + ' ' + finalText).trim();
         setUserAnswer(transcriptRef.current);
         setInterimTranscript('');
-        // Reset 4-second silence timer on every new word received
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = setTimeout(() => {
           if (isListeningRef.current) {
-            recognitionRef.current?.stop(); // stop mic, user can then press Submit
+            recognitionRef.current?.stop();
           }
         }, 4000);
       } else {
@@ -583,7 +591,6 @@ export default function VivaTutor() {
     };
 
     rec.onerror = (e: any) => {
-      // 'no-speech' and 'aborted' are normal — ignore them silently
       if (e.error === 'no-speech' || e.error === 'aborted') return;
       console.warn('Mic error:', e.error);
       setIsListening(false);
@@ -592,8 +599,6 @@ export default function VivaTutor() {
     };
 
     rec.onend = () => {
-      // Mic stopped — update UI but do NOT auto-submit
-      // User reviews transcript in the green box and clicks Submit themselves
       if (isListeningRef.current) {
         setIsListening(false);
         isListeningRef.current = false;
@@ -611,13 +616,12 @@ export default function VivaTutor() {
     const clean = text.replace(/[*#_`]/g, '').trim().slice(0, 400);
     if (!clean) { onDone?.(); return; }
 
-    // Load voices — they may not be ready synchronously
     const getVoice = () => {
       const voices = window.speechSynthesis.getVoices();
       return voices.find(v =>
         v.name.includes('Google UK English Male') ||
         v.name.includes('Google US English') ||
-        v.name.includes('Daniel') // macOS
+        v.name.includes('Daniel')
       ) || voices.find(v => v.lang?.startsWith('en'));
     };
 
@@ -628,7 +632,6 @@ export default function VivaTutor() {
 
     u.onstart = () => {
       setIsTalking(true);
-      // Stop mic ONLY if it's currently active — don't touch it otherwise
       if (isListeningRef.current) {
         try { recognitionRef.current?.stop(); } catch { }
         setIsListening(false);
@@ -640,7 +643,6 @@ export default function VivaTutor() {
     u.onerror = () => { setIsTalking(false); onDone?.(); };
 
     if (!isMuted) {
-      // Some browsers need a tiny delay after cancel() before speak()
       setTimeout(() => window.speechSynthesis.speak(u), 80);
     } else {
       setIsTalking(false);
@@ -658,23 +660,52 @@ export default function VivaTutor() {
     if (!file.name.match(/\.(pdf|txt)$/i)) { alert('Use PDF or TXT'); return; }
     setUploadedFile(file);
     setIsUploading(true);
+    setDetectedTopic(''); setDetectedSubtopics([]); setAnalyzeError('');
+
+    let content = '';
     try {
       if (file.name.endsWith('.txt')) {
-        setUploadedContent(await file.text());
+        content = await file.text();
       } else {
         const fd = new FormData(); fd.append('file', file);
         const r = await fetch('/api/parse-pdf', { method: 'POST', body: fd });
         const d = await r.json();
-        if (r.ok && d.text) setUploadedContent(d.text);
+        if (r.ok && d.text) content = d.text;
         else throw new Error(d.error || 'Parse failed');
       }
-    } catch (err: any) { alert(err.message); setUploadedFile(null); setUploadedContent(''); }
+      setUploadedContent(content);
+    } catch (err: any) {
+      alert(err.message);
+      setUploadedFile(null); setUploadedContent('');
+      setIsUploading(false);
+      return;
+    }
     setIsUploading(false);
+
+    // Have Gemini read the material and figure out what it's actually about,
+    // so the viva is framed around the real subject instead of a generic label.
+    setIsAnalyzing(true);
+    try {
+      const ar = await fetch('/api/viva/analyze-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+      const ad = await ar.json();
+      if (ar.ok && ad.topic) {
+        setDetectedTopic(ad.topic);
+        setDetectedSubtopics(ad.subtopics || []);
+      } else {
+        setAnalyzeError('Could not detect a topic — will proceed with a generic label.');
+      }
+    } catch {
+      setAnalyzeError('Could not detect a topic — will proceed with a generic label.');
+    }
+    setIsAnalyzing(false);
   };
 
   const startViva = async () => {
     setIsStarting(true); setError('');
-    setHistory([]); setElapsed(0); setQNum(1); setCurrentEval(null);
+    setHistory([]); setElapsed(0); setQNum(1);
     setUserAnswer(''); setMessages([]); setSummary(''); setFollowUpCount(0);
     const topicLabel = getTopicLabel();
     try {
@@ -704,6 +735,64 @@ export default function VivaTutor() {
     setIsStarting(false);
   };
 
+  // Advances the session: either fetches the next question, or — if the viva
+  // is complete — moves to the 'done' phase and generates the final summary.
+  const advance = useCallback(async (filledHistory: any[]) => {
+    const next = qNum + 1;
+    if (next > totalQ) {
+      setPhase('done');
+      clearInterval(timerRef.current);
+      const closingLine = "That completes your viva. Let me compile your full assessment.";
+      addMsg({ role: 'tutor', text: closingLine, type: 'intro' });
+      speak(closingLine);
+      setIsEvaluating(true);
+      try {
+        const r = await fetch('/api/viva/summarize', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject: getTopicLabel(), difficulty: level.toLowerCase(), history: filledHistory, totalQuestions: totalQ, elapsed, uploadedContent: uploadedContent || undefined }),
+        });
+        const d = await r.json();
+        setSummary(d.feedback || '');
+      } catch { setSummary('Your viva is complete. Well done.'); }
+      setIsEvaluating(false);
+      return;
+    }
+
+    setIsLoadingNext(true);
+    setUserAnswer(''); setIsFollowUp(false);
+    setTutorExpression('thinking');
+    try {
+      const r = await fetch('/api/viva/next-question', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: getTopicLabel(), difficulty: level.toLowerCase(),
+          uploadedContent: uploadedContent || undefined,
+          previousQuestions: filledHistory, questionNumber: next, totalQuestions: totalQ,
+          lastAnswer: filledHistory[filledHistory.length - 1]?.userAnswer || '',
+          lastScore: filledHistory[filledHistory.length - 1]?.score ?? 5,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Failed to generate question');
+      const newQ = { 
+        question: d.question, 
+        expectedConcepts: d.expectedConcepts || [], 
+        subtopic: d.subtopic || '',
+        keyPoints: d.keyPoints || [],
+        idealAnswer: d.idealAnswer || '',
+        maxMarks: d.maxMarks || 10
+      };
+      setCurrentQ(newQ);
+      setQNum(next);
+      setTutorExpression('neutral');
+      addMsg({ role: 'tutor', text: d.question, type: 'question' });
+      speak(d.question, () => setAwaitingAnswer(true));
+    } catch (err: any) {
+      setError(err.message || 'Failed to get next question');
+    }
+    setIsLoadingNext(false);
+  }, [qNum, totalQ, elapsed, uploadedContent, level, addMsg, speak]);
+
   const submitAnswer = useCallback(async (answerOverride?: string) => {
     const ans = (answerOverride || userAnswer).trim();
     if (!ans || isEvaluating || !currentQ) return;
@@ -724,12 +813,16 @@ export default function VivaTutor() {
         body: JSON.stringify({
           question: currentQ.question,
           expectedConcepts: currentQ.expectedConcepts,
+          keyPoints: currentQ.keyPoints,
+          idealAnswer: currentQ.idealAnswer,
+          maxMarks: currentQ.maxMarks,
           userAnswer: ans,
           subject: getTopicLabel(),
           index: qNum - 1,
           conversationHistory: messages.slice(-8).map(m => ({ role: m.role, text: m.text })),
           isFollowUp,
           followUpCount,
+          uploadedContent: uploadedContent || undefined,
         }),
       });
       const d = await r.json();
@@ -742,21 +835,25 @@ export default function VivaTutor() {
         followupQuestion: d.followupQuestion || '',
         shouldFollowUp: d.shouldFollowUp || false,
       };
-      setCurrentEval(evalData);
       setTutorThinking(false);
       setTutorExpression(evalData.expression);
 
+      // Replace the "Evaluating…" placeholder with just a short, in-character
+      // verbal acknowledgment. No score, no metrics, no feedback text shown here —
+      // that's all withheld and only surfaced in the final summary screen.
       setMessages(prev => {
         const filtered = prev.filter(m => !m.isThinking);
         const acknowledgment = d.acknowledgment || (d.score >= 7 ? "Mmm, yes." : d.score >= 5 ? "Interesting." : "I see.");
         return [...filtered, { role: 'tutor' as const, text: acknowledgment, type: 'feedback' as const }];
       });
 
-      setHistory(prev => [...prev, {
-        ...currentQ, userAnswer: ans, score: d.score,
-        feedback: d.feedback, clarity: d.clarity, accuracy: d.accuracy,
-        depth: d.depth, communication: d.communication, sentiment: d.sentiment,
-      }]);
+      // Record full scoring data in history — used only for the end-of-viva report.
+      const updatedHistory = [...history, {
+        ...currentQ, userAnswer: ans, score: evalData.score,
+        feedback: evalData.feedback, clarity: evalData.clarity, accuracy: evalData.accuracy,
+        depth: evalData.depth, communication: evalData.communication, sentiment: evalData.sentiment,
+      }];
+      setHistory(updatedHistory);
 
       const ack = d.acknowledgment || (d.score >= 7 ? "Good." : "Alright.");
       speak(ack, () => {
@@ -772,10 +869,13 @@ export default function VivaTutor() {
           setIsEvaluating(false);
           return;
         }
+        // No more follow-ups for this question — move straight on to the
+        // next question (or the final summary) without showing any
+        // evaluation UI in between.
         setIsFollowUp(false);
         setFollowUpCount(0);
-        setAwaitingAnswer(false);
         setIsEvaluating(false);
+        advance(updatedHistory);
       });
     } catch (err: any) {
       setTutorThinking(false);
@@ -783,59 +883,10 @@ export default function VivaTutor() {
       setError('Evaluation failed. Please try again.');
       setIsEvaluating(false);
     }
-  }, [userAnswer, isEvaluating, currentQ, isListening, messages, qNum, isFollowUp, followUpCount, speak, addMsg]);
-
-
-  const nextQuestion = async () => {
-    const next = qNum + 1;
-    if (next > totalQ) {
-      setPhase('done');
-      clearInterval(timerRef.current);
-      const closingLine = "That completes your viva. Let me compile your full assessment.";
-      addMsg({ role: 'tutor', text: closingLine, type: 'intro' });
-      speak(closingLine);
-      setIsEvaluating(true);
-      try {
-        const r = await fetch('/api/viva/summarize', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subject: getTopicLabel(), difficulty: level.toLowerCase(), history, totalQuestions: totalQ, elapsed }),
-        });
-        const d = await r.json();
-        setSummary(d.feedback || '');
-      } catch { setSummary('Your viva is complete. Well done.'); }
-      setIsEvaluating(false);
-      return;
-    }
-    setIsLoadingNext(true);
-    setCurrentEval(null); setUserAnswer(''); setIsFollowUp(false);
-    setTutorExpression('thinking');
-    try {
-      const r = await fetch('/api/viva/next-question', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subject: getTopicLabel(), difficulty: level.toLowerCase(),
-          uploadedContent: uploadedContent || undefined,
-          previousQuestions: history, questionNumber: next, totalQuestions: totalQ,
-          lastAnswer: history[history.length - 1]?.userAnswer || '',
-          lastScore: history[history.length - 1]?.score || 5,
-        }),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error || 'Failed to generate question');
-      const newQ = { question: d.question, expectedConcepts: d.expectedConcepts || [], subtopic: d.subtopic || '' };
-      setCurrentQ(newQ);
-      setQNum(next);
-      setTutorExpression('neutral');
-      addMsg({ role: 'tutor', text: d.question, type: 'question' });
-      speak(d.question, () => setAwaitingAnswer(true));
-    } catch (err: any) {
-      setError(err.message || 'Failed to get next question');
-    }
-    setIsLoadingNext(false);
-  };
+  }, [userAnswer, isEvaluating, currentQ, isListening, messages, qNum, isFollowUp, followUpCount, speak, addMsg, history, advance]);
 
   const toggleMic = () => {
-    if (isTalking) return; // Professor is speaking — wait
+    if (isTalking) return;
 
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
@@ -844,19 +895,16 @@ export default function VivaTutor() {
     }
 
     if (isListening) {
-      // Stop listening
       clearTimeout(silenceTimerRef.current);
       try { recognitionRef.current?.stop(); } catch { }
       setIsListening(false);
       isListeningRef.current = false;
       setInterimTranscript('');
     } else {
-      // Start fresh recording — clear previous transcript
       transcriptRef.current = '';
       setUserAnswer('');
       setInterimTranscript('');
 
-      // Recreate recognition instance each time — avoids "already started" errors
       const rec = new SR();
       rec.continuous = true;
       rec.interimResults = true;
@@ -923,7 +971,7 @@ export default function VivaTutor() {
     window.speechSynthesis?.cancel();
     clearTimeout(silenceTimerRef.current);
     setPhase('setup'); setCurrentQ(null); setQNum(1); setHistory([]);
-    setCurrentEval(null); setUserAnswer(''); setElapsed(0);
+    setUserAnswer(''); setElapsed(0);
     setMessages([]); setSummary(''); setError('');
     setIsListening(false); isListeningRef.current = false;
     setIsTalking(false); setShowTextInput(false); setInterimTranscript('');
@@ -941,16 +989,16 @@ export default function VivaTutor() {
   return (
     <div style={{
       fontFamily: "'DM Sans', 'Inter', -apple-system, sans-serif",
-      background: '#FFFFFF',
+      background: BG,
       minHeight: '100vh',
-      color: '#1E293B',
+      color: TEXT,
       position: 'relative',
-      overflowX: 'hidden',   /* only clip horizontal, never vertical */
+      overflowX: 'hidden',
     }}>
-      {/* Ambient background — very subtle on white */}
+      {/* Ambient background */}
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,111,247,0.04) 0%, transparent 70%)' }} />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '45%', height: '50%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.03) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', top: '-20%', left: '-10%', width: '50%', height: '60%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,240,255,0.03) 0%, transparent 70%)' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '45%', height: '50%', borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.02) 0%, transparent 70%)' }} />
         <Particles count={25} />
       </div>
 
@@ -959,37 +1007,37 @@ export default function VivaTutor() {
         position: 'sticky', top: 0, zIndex: 50,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '12px 28px',
-        background: 'rgba(255,255,255,0.92)',
+        background: 'rgba(9,9,11,0.85)',
         backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid #E2E8F0',
-        boxShadow: '0 1px 8px rgba(0,0,0,0.06)',
+        borderBottom: `1px solid ${BORDER}`,
+        boxShadow: '0 1px 8px rgba(0,0,0,0.3)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: 'linear-gradient(135deg, #7C6FF7, #3B82F6)',
+            background: NEON,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(124,111,247,0.3)',
+            boxShadow: NEON_GLOW,
           }}>
-            <Brain size={18} color="#fff" />
+            <Brain size={18} color={BG} />
           </div>
           <div>
-            <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: '#111827', letterSpacing: '-0.02em' }}>AI Viva Tutor</p>
-            <p style={{ fontSize: 10, color: '#94A3B8', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Prof. Charles · </p>
+            <p style={{ fontSize: 15, fontWeight: 700, margin: 0, color: TEXT, letterSpacing: '-0.02em' }}>AI Viva Tutor</p>
+            <p style={{ fontSize: 10, color: TEXT_DIM, margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Prof. Charles · </p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {phase === 'session' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: '#F8FAFC', border: '1px solid #E2E8F0', fontSize: 12, color: '#64748B', fontVariantNumeric: 'tabular-nums' }}>
-              <Activity size={12} color="#22C55E" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', borderRadius: 20, background: 'rgba(255,255,255,0.04)', border: `1px solid ${BORDER}`, fontSize: 12, color: TEXT_SEC, fontVariantNumeric: 'tabular-nums' }}>
+              <Activity size={12} color={SUCCESS} />
               {formatTime(elapsed)}
             </div>
           )}
           {phase === 'session' && (
             <button onClick={() => setIsMuted(m => !m)} style={{
               padding: '6px 12px', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              background: '#F8FAFC', border: '1px solid #E2E8F0',
-              color: isMuted ? '#EF4444' : '#64748B', display: 'flex', alignItems: 'center', gap: 5,
+              background: 'rgba(255,255,255,0.04)', border: `1px solid ${BORDER}`,
+              color: isMuted ? DANGER : TEXT_SEC, display: 'flex', alignItems: 'center', gap: 5,
             }}>
               {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
               {isMuted ? 'Unmute' : 'Mute'}
@@ -997,9 +1045,9 @@ export default function VivaTutor() {
           )}
           {phase !== 'setup' && (
             <button onClick={reset} style={{
-              padding: '6px 14px', borderRadius: 20, border: '1px solid #FECACA',
-              background: '#FEF2F2', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              color: '#EF4444', display: 'flex', alignItems: 'center', gap: 5,
+              padding: '6px 14px', borderRadius: 20, border: `1px solid rgba(239,68,68,0.3)`,
+              background: DANGER_DIM, cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              color: DANGER, display: 'flex', alignItems: 'center', gap: 5,
             }}>
               <Phone size={12} style={{ transform: 'rotate(135deg)' }} /> End
             </button>
@@ -1019,29 +1067,29 @@ export default function VivaTutor() {
               </div>
               <div style={{
                 marginTop: 16, padding: '12px 22px', borderRadius: 14, maxWidth: 360, textAlign: 'center',
-                background: '#F5F3FF', border: '1px solid #DDD6FE',
+                background: NEON_BG, border: `1px solid ${NEON_BORDER}`,
               }}>
-                <p style={{ fontSize: 14, color: '#4C1D95', margin: 0, lineHeight: 1.6 }}>
-                  Hi, I'm <strong style={{ color: '#7C3AED' }}>Prof. Charles</strong>. Upload your material or pick a topic — I'll study it and conduct a live viva, just like your real examiner.
+                <p style={{ fontSize: 14, color: TEXT_SEC, margin: 0, lineHeight: 1.6 }}>
+                  Hi, I'm <strong style={{ color: NEON }}>Prof. Charles</strong>. Upload your material or pick a topic — I'll study it and conduct a live viva, just like your real examiner.
                 </p>
               </div>
             </div>
 
             {/* Setup card */}
             <div style={{
-              background: '#FFFFFF', borderRadius: 20,
-              border: '1px solid #E2E8F0', padding: 28,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              background: CARD, borderRadius: 20,
+              border: `1px solid ${BORDER}`, padding: 28,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
             }}>
               {/* Topic */}
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Topic</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: TEXT_DIM, display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Topic</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 {['Preset', 'Custom'].map((t, i) => (
                   <button key={t} onClick={() => setIsCustom(i === 1)} style={{
                     padding: '8px 18px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    border: (isCustom ? i === 1 : i === 0) ? '1.5px solid #7C6FF7' : '1px solid #E2E8F0',
-                    background: (isCustom ? i === 1 : i === 0) ? '#F5F3FF' : '#FAFAFA',
-                    color: (isCustom ? i === 1 : i === 0) ? '#7C3AED' : '#94A3B8',
+                    border: (isCustom ? i === 1 : i === 0) ? `1.5px solid ${NEON}` : `1px solid ${BORDER}`,
+                    background: (isCustom ? i === 1 : i === 0) ? NEON_BG : 'transparent',
+                    color: (isCustom ? i === 1 : i === 0) ? NEON : TEXT_DIM,
                   }}>{t}</button>
                 ))}
               </div>
@@ -1049,88 +1097,110 @@ export default function VivaTutor() {
                 <div style={{ position: 'relative', marginBottom: 20 }}>
                   <select value={topic} onChange={e => setTopic(e.target.value)} style={{
                     width: '100%', padding: '11px 14px', borderRadius: 10, fontSize: 14, cursor: 'pointer',
-                    border: '1px solid #E2E8F0', background: '#FAFAFA',
-                    color: '#1E293B', fontFamily: 'inherit', appearance: 'none', outline: 'none',
+                    border: `1px solid ${BORDER}`, background: BG_SUBTLE,
+                    color: topic ? TEXT : TEXT_DIM, fontFamily: 'inherit', appearance: 'none', outline: 'none',
                   }}>
+                    <option value="" disabled>Choose Your Topic</option>
                     {TOPICS.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
-                  <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8', pointerEvents: 'none' }} />
+                  <ChevronDown size={14} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', color: TEXT_DIM, pointerEvents: 'none' }} />
                 </div>
               ) : (
                 <input value={customTopic} onChange={e => setCustomTopic(e.target.value)}
                   placeholder="e.g. Quantum Computing, Organic Chemistry…"
                   style={{
                     width: '100%', padding: '11px 14px', borderRadius: 10, fontSize: 14,
-                    border: '1px solid #E2E8F0', background: '#FAFAFA',
-                    color: '#1E293B', fontFamily: 'inherit', outline: 'none', marginBottom: 20, boxSizing: 'border-box',
+                    border: `1px solid ${BORDER}`, background: BG_SUBTLE,
+                    color: TEXT, fontFamily: 'inherit', outline: 'none', marginBottom: 20, boxSizing: 'border-box',
                   }} />
               )}
 
               {/* Level */}
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Level</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: TEXT_DIM, display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Level</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                 {LEVELS.map(l => (
                   <button key={l} onClick={() => setLevel(l)} style={{
                     flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                    border: level === l ? '1.5px solid #7C6FF7' : '1px solid #E2E8F0',
-                    background: level === l ? '#F5F3FF' : '#FAFAFA',
-                    color: level === l ? '#7C3AED' : '#94A3B8',
+                    border: level === l ? `1.5px solid ${NEON}` : `1px solid ${BORDER}`,
+                    background: level === l ? NEON_BG : 'transparent',
+                    color: level === l ? NEON : TEXT_DIM,
                   }}>{l}</button>
                 ))}
               </div>
 
               {/* Questions */}
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#94A3B8', display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Questions</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: TEXT_DIM, display: 'block', marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Questions</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 22 }}>
                 {[3, 5, 10].map(n => (
                   <button key={n} onClick={() => setTotalQ(n)} style={{
                     flex: 1, padding: '10px 0', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer',
-                    border: totalQ === n ? '1.5px solid #7C6FF7' : '1px solid #E2E8F0',
-                    background: totalQ === n ? '#F5F3FF' : '#FAFAFA',
-                    color: totalQ === n ? '#7C3AED' : '#94A3B8',
+                    border: totalQ === n ? `1.5px solid ${NEON}` : `1px solid ${BORDER}`,
+                    background: totalQ === n ? NEON_BG : 'transparent',
+                    color: totalQ === n ? NEON : TEXT_DIM,
                   }}>{n}</button>
                 ))}
               </div>
 
               {/* File upload */}
               <div style={{
-                background: '#FAFAFA', borderRadius: 12,
-                border: '1.5px dashed #CBD5E1', padding: 18, marginBottom: 24, textAlign: 'center',
+                background: 'rgba(255,255,255,0.02)', borderRadius: 12,
+                border: `1.5px dashed ${BORDER_HOVER}`, padding: 18, marginBottom: 24, textAlign: 'center',
               }}>
                 {!uploadedFile ? (
                   <>
-                    <Upload size={20} color="#94A3B8" style={{ margin: '0 auto 6px' }} />
-                    <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 10px' }}>Upload study material — PDF or TXT (optional)</p>
+                    <Upload size={20} color={TEXT_DIM} style={{ margin: '0 auto 6px' }} />
+                    <p style={{ fontSize: 13, color: TEXT_DIM, margin: '0 0 10px' }}>Upload study material — PDF or TXT (optional)</p>
                     <button onClick={() => fileRef.current?.click()} style={{
                       padding: '7px 18px', borderRadius: 8, cursor: 'pointer',
-                      border: '1px solid #DDD6FE', background: '#F5F3FF',
-                      color: '#7C3AED', fontSize: 13, fontWeight: 600,
+                      border: `1px solid ${NEON_BORDER}`, background: NEON_BG,
+                      color: NEON, fontSize: 13, fontWeight: 600,
                     }}>
                       {isUploading ? 'Processing…' : 'Choose File'}
                     </button>
                     <input ref={fileRef} type="file" accept=".pdf,.txt" style={{ display: 'none' }} onChange={handleFile} />
                   </>
                 ) : (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
-                    <FileText size={16} color="#22C55E" />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#16A34A' }}>{uploadedFile.name}</span>
-                    <button onClick={() => { setUploadedFile(null); setUploadedContent(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', padding: 2 }}>
-                      <X size={14} />
-                    </button>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+                      <FileText size={16} color={SUCCESS} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: SUCCESS }}>{uploadedFile.name}</span>
+                      <button onClick={() => {
+                        setUploadedFile(null); setUploadedContent('');
+                        setDetectedTopic(''); setDetectedSubtopics([]); setAnalyzeError('');
+                      }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: TEXT_DIM, padding: 2 }}>
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    {isAnalyzing ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, fontSize: 12, color: TEXT_DIM }}>
+                        <Loader2 size={12} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} />
+                        Prof. Charles is reading your material…
+                      </div>
+                    ) : detectedTopic ? (
+                      <div style={{ marginTop: 10, padding: '9px 12px', borderRadius: 8, background: NEON_BG, border: `1px solid ${NEON_BORDER}`, textAlign: 'left' }}>
+                        <p style={{ fontSize: 12, color: NEON, fontWeight: 700, margin: 0 }}>Detected topic: {detectedTopic}</p>
+                        {detectedSubtopics.length > 0 && (
+                          <p style={{ fontSize: 11, color: TEXT_DIM, margin: '4px 0 0' }}>{detectedSubtopics.join(' · ')}</p>
+                        )}
+                      </div>
+                    ) : analyzeError ? (
+                      <p style={{ fontSize: 11, color: WARNING, margin: '8px 0 0' }}>{analyzeError}</p>
+                    ) : null}
                   </div>
                 )}
               </div>
 
-              {error && <p style={{ fontSize: 13, color: '#DC2626', marginBottom: 12, background: '#FEF2F2', padding: '10px 14px', borderRadius: 8, border: '1px solid #FECACA' }}>⚠ {error}</p>}
+              {error && <p style={{ fontSize: 13, color: DANGER, marginBottom: 12, background: DANGER_DIM, padding: '10px 14px', borderRadius: 8, border: `1px solid rgba(239,68,68,0.3)` }}>⚠ {error}</p>}
 
-              <button onClick={startViva} disabled={isStarting || (isCustom && !customTopic.trim())} style={{
+              <button onClick={startViva} disabled={isStarting || isUploading || isAnalyzing || (!uploadedFile && (isCustom ? !customTopic.trim() : !topic))} style={{
                 width: '100%', padding: 15, borderRadius: 12, border: 'none', cursor: 'pointer',
-                background: isStarting || (isCustom && !customTopic.trim())
-                  ? '#A5B4FC'
-                  : 'linear-gradient(135deg, #7C6FF7, #3B82F6)',
-                color: '#fff', fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
+                background: isStarting || isUploading || isAnalyzing || (!uploadedFile && (isCustom ? !customTopic.trim() : !topic))
+                  ? NEON_DIM
+                  : NEON,
+                color: BG, fontSize: 15, fontWeight: 700, letterSpacing: '-0.01em',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                boxShadow: isStarting ? 'none' : '0 8px 24px rgba(124,111,247,0.3)',
+                boxShadow: isStarting ? 'none' : NEON_GLOW,
                 transition: 'all 0.2s',
               }}>
                 {isStarting ? <><Loader2 size={18} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} /> Preparing…</> : <><Zap size={18} /> Begin Viva Session</>}
@@ -1148,16 +1218,16 @@ export default function VivaTutor() {
               {/* Orb card */}
               <div style={{
                 borderRadius: 20, padding: 24, textAlign: 'center', marginBottom: 14,
-                background: 'linear-gradient(145deg, #F5F3FF 0%, #EFF6FF 100%)',
-                border: '1px solid #DDD6FE',
-                boxShadow: '0 2px 12px rgba(124,111,247,0.1)',
+                background: `linear-gradient(145deg, ${CARD} 0%, ${BG_SUBTLE} 100%)`,
+                border: `1px solid ${NEON_BORDER}`,
+                boxShadow: `0 2px 12px rgba(0,240,255,0.08)`,
               }}>
                 <div style={{ width: 140, height: 140, margin: '0 auto 14px' }}>
                   <ProfessorFace talking={isTalking} listening={isListening} thinking={tutorThinking} expression={tutorExpression} />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
-                  <Waveform active={isTalking} color="#7C6FF7" bars={10} />
+                  <Waveform active={isTalking} color={NEON} bars={10} />
                 </div>
 
                 {/* Status label */}
@@ -1165,11 +1235,11 @@ export default function VivaTutor() {
                   display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px',
                   borderRadius: 20, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em',
                   textTransform: 'uppercase', marginBottom: 14,
-                  background: tutorThinking ? '#FFFBEB' : isTalking ? '#F5F3FF' : isListening ? '#F0FDF4' : '#F8FAFC',
-                  color: tutorThinking ? '#D97706' : isTalking ? '#7C3AED' : isListening ? '#16A34A' : '#64748B',
-                  border: `1px solid ${tutorThinking ? '#FDE68A' : isTalking ? '#DDD6FE' : isListening ? '#86EFAC' : '#E2E8F0'}`,
+                  background: tutorThinking ? WARNING_DIM : isTalking ? NEON_BG : isListening ? SUCCESS_DIM : 'rgba(255,255,255,0.04)',
+                  color: tutorThinking ? WARNING : isTalking ? NEON : isListening ? SUCCESS : TEXT_DIM,
+                  border: `1px solid ${tutorThinking ? WARNING_BORDER : isTalking ? NEON_BORDER : isListening ? 'rgba(52,211,153,0.3)' : BORDER}`,
                 }}>
-                  {tutorThinking ? '🧠 Evaluating' : isTalking ? '🔊 Speaking' : isListening ? '🎙 Listening' : awaitingAnswer ? '⏳ Awaiting' : '😐 Idle'}
+                  {tutorThinking ? '🧠 Evaluating' : isTalking ? '🔊 Speaking' : isListening ? '🎙 Listening' : awaitingAnswer ? '⏳ Awaiting' : isLoadingNext ? '📝 Preparing' : '😐 Idle'}
                 </div>
 
                 {/* Controls */}
@@ -1180,13 +1250,13 @@ export default function VivaTutor() {
                   }}>
                     <div style={{
                       width: 40, height: 40, borderRadius: '50%',
-                      background: isMuted ? '#FEF2F2' : '#F8FAFC',
+                      background: isMuted ? DANGER_DIM : 'rgba(255,255,255,0.04)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: `1px solid ${isMuted ? '#FECACA' : '#E2E8F0'}`,
+                      border: `1px solid ${isMuted ? 'rgba(239,68,68,0.3)' : BORDER}`,
                     }}>
-                      {isMuted ? <VolumeX size={16} color="#EF4444" /> : <Volume2 size={16} color="#64748B" />}
+                      {isMuted ? <VolumeX size={16} color={DANGER} /> : <Volume2 size={16} color={TEXT_DIM} />}
                     </div>
-                    <span style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{isMuted ? 'Unmute' : 'Mute'}</span>
+                    <span style={{ fontSize: 9, color: TEXT_DIM, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{isMuted ? 'Unmute' : 'Mute'}</span>
                   </button>
                   <button onClick={reset} style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
@@ -1194,42 +1264,41 @@ export default function VivaTutor() {
                   }}>
                     <div style={{
                       width: 40, height: 40, borderRadius: '50%',
-                      background: '#FEF2F2',
+                      background: DANGER_DIM,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      border: '1px solid #FECACA',
+                      border: `1px solid rgba(239,68,68,0.3)`,
                     }}>
-                      <Phone size={16} color="#EF4444" style={{ transform: 'rotate(135deg)' }} />
+                      <Phone size={16} color={DANGER} style={{ transform: 'rotate(135deg)' }} />
                     </div>
-                    <span style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>End</span>
+                    <span style={{ fontSize: 9, color: TEXT_DIM, textTransform: 'uppercase', letterSpacing: '0.06em' }}>End</span>
                   </button>
                 </div>
               </div>
 
               {/* Progress */}
               <div style={{
-                background: '#FFFFFF', borderRadius: 14,
-                border: '1px solid #E2E8F0', padding: 16, marginBottom: 14,
-                boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                background: CARD, borderRadius: 14,
+                border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14,
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 12 }}>
-                  <span style={{ color: '#374151', fontWeight: 600 }}>{getTopicLabel()}</span>
-                  <span style={{ color: '#94A3B8' }}>{level}</span>
+                  <span style={{ color: TEXT, fontWeight: 600 }}>{getTopicLabel()}</span>
+                  <span style={{ color: TEXT_DIM }}>{level}</span>
                 </div>
-                <div style={{ height: 4, background: '#F1F5F9', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: 'linear-gradient(90deg, #7C6FF7, #3B82F6)', borderRadius: 2, width: `${progress}%`, transition: 'width 0.5s' }} />
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, marginBottom: 8, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: NEON, borderRadius: 2, width: `${progress}%`, transition: 'width 0.5s', boxShadow: '0 0 8px rgba(0,240,255,0.4)' }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                  <span style={{ color: '#111827', fontWeight: 700 }}>Q{qNum} / {totalQ}</span>
-                  <span style={{ color: '#94A3B8' }}>Avg {avgScore}/10</span>
+                  <span style={{ color: TEXT, fontWeight: 700 }}>Q{qNum} / {totalQ}</span>
+                  <span style={{ color: TEXT_DIM }}>Scores revealed at the end</span>
                 </div>
               </div>
 
               {/* Tip box */}
               <div style={{
-                background: '#FFFBEB', borderRadius: 12,
-                border: '1px solid #FDE68A', padding: '10px 14px', fontSize: 11, color: '#92400E', lineHeight: 1.6,
+                background: WARNING_DIM, borderRadius: 12,
+                border: `1px solid ${WARNING_BORDER}`, padding: '10px 14px', fontSize: 11, color: WARNING, lineHeight: 1.6,
               }}>
-                <span style={{ color: '#B45309', fontWeight: 600 }}>⚡ Auto-submit:</span> Mic stops after 3s of silence
+                <span style={{ color: WARNING, fontWeight: 600 }}>⚡ Auto-submit:</span> Mic stops after 4s of silence
               </div>
             </div>
 
@@ -1237,38 +1306,38 @@ export default function VivaTutor() {
             <div>
               {/* Chat log */}
               <div style={{
-                background: '#FFFFFF', borderRadius: 20,
-                border: '1px solid #E2E8F0', padding: '20px 20px 16px',
+                background: CARD, borderRadius: 20,
+                border: `1px solid ${BORDER}`, padding: '20px 20px 16px',
                 marginBottom: 14, minHeight: 380, maxHeight: 520, overflowY: 'auto',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
               }}>
                 {messages.map((msg, i) => (
                   <ChatBubble key={i} msg={msg} isNew={i === messages.length - 1} />
                 ))}
                 {isLoadingNext && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0', color: '#94A3B8', fontSize: 13 }}>
-                    <Loader2 size={16} color="#7C6FF7" style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0', color: TEXT_DIM, fontSize: 13 }}>
+                    <Loader2 size={16} color={NEON} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} />
                     Preparing next question…
                   </div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
-              {/* Answer section */}
-              {awaitingAnswer && !currentEval && !isLoadingNext && (
+              {/* Answer section — shown whenever it's the student's turn to respond.
+                  After submitting, the flow goes straight to the next question
+                  (or final summary) with no intermediate evaluation card. */}
+              {awaitingAnswer && !isLoadingNext && (
                 <div style={{
-                  background: '#FFFFFF', borderRadius: 16,
-                  border: '1px solid #E2E8F0', padding: 16, marginBottom: 14,
-                  boxShadow: '0 1px 6px rgba(0,0,0,0.04)',
+                  background: CARD, borderRadius: 16,
+                  border: `1px solid ${BORDER}`, padding: 16, marginBottom: 14,
                 }}>
                   {isTalking && (
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
-                      background: '#F5F3FF', borderRadius: 10, marginBottom: 12,
-                      border: '1px solid #DDD6FE',
+                      background: NEON_BG, borderRadius: 10, marginBottom: 12,
+                      border: `1px solid ${NEON_BORDER}`,
                     }}>
-                      <Waveform active={true} color="#7C6FF7" bars={8} />
-                      <p style={{ fontSize: 13, color: '#7C3AED', margin: 0, fontWeight: 600 }}>Prof. Charles is speaking — mic is locked</p>
+                      <Waveform active={true} color={NEON} bars={8} />
+                      <p style={{ fontSize: 13, color: NEON, margin: 0, fontWeight: 600 }}>Prof. Charles is speaking — mic is locked</p>
                     </div>
                   )}
 
@@ -1278,11 +1347,11 @@ export default function VivaTutor() {
 
                   {userAnswer && !isListening && !showTextInput && (
                     <div style={{
-                      padding: '10px 14px', background: '#F0FDF4', borderRadius: 10,
-                      border: '1px solid #86EFAC', marginBottom: 12,
+                      padding: '10px 14px', background: SUCCESS_DIM, borderRadius: 10,
+                      border: `1px solid rgba(52,211,153,0.3)`, marginBottom: 12,
                     }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: '#16A34A', margin: '0 0 4px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Your Answer</p>
-                      <p style={{ fontSize: 13, color: '#14532D', margin: 0, lineHeight: 1.5 }}>{userAnswer}</p>
+                      <p style={{ fontSize: 10, fontWeight: 700, color: SUCCESS, margin: '0 0 4px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Your Answer</p>
+                      <p style={{ fontSize: 13, color: TEXT, margin: 0, lineHeight: 1.5 }}>{userAnswer}</p>
                     </div>
                   )}
 
@@ -1294,8 +1363,8 @@ export default function VivaTutor() {
                         placeholder="Type your answer…" rows={4}
                         style={{
                           width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 13,
-                          border: '1px solid #CBD5E1', background: '#F8FAFC',
-                          color: '#1E293B', fontFamily: 'inherit', outline: 'none', resize: 'vertical',
+                          border: `1px solid ${BORDER}`, background: BG_SUBTLE,
+                          color: TEXT, fontFamily: 'inherit', outline: 'none', resize: 'vertical',
                           lineHeight: 1.6, boxSizing: 'border-box',
                         }} />
                     </div>
@@ -1305,15 +1374,15 @@ export default function VivaTutor() {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <button onClick={toggleMic} disabled={isTalking} style={{
                       flex: showTextInput ? 'none' : 1, padding: '11px 16px', borderRadius: 12,
-                      border: isListening ? '1.5px solid #EF4444' : '1px solid #E2E8F0',
-                      background: isTalking ? '#F8FAFC' : isListening ? '#FEF2F2' : '#F8FAFC',
+                      border: isListening ? `1.5px solid ${DANGER}` : `1px solid ${BORDER}`,
+                      background: isTalking ? 'rgba(255,255,255,0.03)' : isListening ? DANGER_DIM : 'rgba(255,255,255,0.03)',
                       fontSize: 13, fontWeight: 600, cursor: isTalking ? 'not-allowed' : 'pointer',
-                      color: isTalking ? '#94A3B8' : isListening ? '#EF4444' : '#64748B',
+                      color: isTalking ? TEXT_DIM : isListening ? DANGER : TEXT_SEC,
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
                       opacity: isTalking ? 0.5 : 1,
                     }}>
                       {isListening ? (
-                        <><MicOff size={15} /> Stop <Waveform active={true} color="#EF4444" bars={6} /></>
+                        <><MicOff size={15} /> Stop <Waveform active={true} color={DANGER} bars={6} /></>
                       ) : (
                         <><Mic size={15} /> {isTalking ? 'Wait…' : 'Speak'}</>
                       )}
@@ -1322,9 +1391,9 @@ export default function VivaTutor() {
                     <button onClick={() => { setShowTextInput(t => !t); setTimeout(() => textareaRef.current?.focus(), 80); }}
                       disabled={isTalking} style={{
                         padding: '11px 14px', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: isTalking ? 'not-allowed' : 'pointer',
-                        border: showTextInput ? '1.5px solid #7C6FF7' : '1px solid #E2E8F0',
-                        background: showTextInput ? '#F5F3FF' : '#F8FAFC',
-                        color: showTextInput ? '#7C3AED' : '#64748B', opacity: isTalking ? 0.5 : 1,
+                        border: showTextInput ? `1.5px solid ${NEON}` : `1px solid ${BORDER}`,
+                        background: showTextInput ? NEON_BG : 'rgba(255,255,255,0.03)',
+                        color: showTextInput ? NEON : TEXT_SEC, opacity: isTalking ? 0.5 : 1,
                         display: 'flex', alignItems: 'center', gap: 5,
                       }}>
                       <MessageSquare size={14} />
@@ -1333,10 +1402,10 @@ export default function VivaTutor() {
                     {userAnswer.trim() && !isListening && (
                       <button onClick={() => submitAnswer()} disabled={isEvaluating || isTalking} style={{
                         padding: '11px 22px', borderRadius: 12, border: 'none',
-                        background: 'linear-gradient(135deg, #7C6FF7, #3B82F6)',
-                        fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer',
+                        background: NEON,
+                        fontSize: 13, fontWeight: 700, color: BG, cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: 6,
-                        boxShadow: '0 4px 16px rgba(124,111,247,0.25)',
+                        boxShadow: NEON_GLOW,
                       }}>
                         {isEvaluating ? <Loader2 size={14} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} /> : <Send size={14} />}
                         Submit
@@ -1346,58 +1415,21 @@ export default function VivaTutor() {
                 </div>
               )}
 
-              {/* Evaluation result */}
-              {currentEval && !isLoadingNext && (
+              {/* Evaluating / transitioning state — shown right after submit,
+                  while we wait for assess + (next-question or summarize) to
+                  resolve. No scores or feedback are surfaced here. */}
+              {isEvaluating && !awaitingAnswer && (
                 <div style={{
-                  background: '#FFFFFF', borderRadius: 16,
-                  border: '1px solid #E2E8F0', padding: 18, marginBottom: 14,
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '14px 18px',
+                  background: CARD, borderRadius: 16, border: `1px solid ${BORDER}`,
+                  marginBottom: 14, color: TEXT_DIM, fontSize: 13,
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <ScoreBadge score={currentEval.score} />
-                      <SentimentChip sentiment={currentEval.sentiment} />
-                      {isFollowUp && <span style={{ fontSize: 10, background: '#FFFBEB', color: '#D97706', padding: '2px 8px', borderRadius: 20, fontWeight: 700, letterSpacing: '0.06em', border: '1px solid #FDE68A' }}>PROBED</span>}
-                    </div>
-                    <span style={{ fontSize: 11, color: '#94A3B8' }}>Q{qNum} of {totalQ}</span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 14 }}>
-                    {[
-                      { label: 'Clarity', val: currentEval.clarity, color: '#2563EB' },
-                      { label: 'Accuracy', val: currentEval.accuracy, color: '#16A34A' },
-                      { label: 'Depth', val: currentEval.depth, color: '#7C3AED' },
-                      { label: 'Comm.', val: currentEval.communication, color: '#D97706' },
-                    ].map(m => (
-                      <div key={m.label} style={{ textAlign: 'center', padding: '8px 4px', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0' }}>
-                        <p style={{ fontSize: 20, fontWeight: 800, color: m.color, margin: '0 0 2px' }}>{m.val}</p>
-                        <p style={{ fontSize: 9, color: '#94A3B8', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{m.label}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ padding: '10px 12px', background: '#FFFBEB', borderRadius: 10, border: '1px solid #FDE68A', marginBottom: 12 }}>
-                    <p style={{ fontSize: 12, color: '#92400E', margin: 0 }}>
-                      📋 Detailed feedback will be revealed at the end of your viva.
-                    </p>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button onClick={nextQuestion} disabled={isLoadingNext} style={{
-                      padding: '11px 26px', borderRadius: 12, border: 'none',
-                      background: 'linear-gradient(135deg, #7C6FF7, #3B82F6)',
-                      color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: 7,
-                      boxShadow: '0 4px 16px rgba(124,111,247,0.25)',
-                    }}>
-                      {isLoadingNext ? <><Loader2 size={14} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} /> Loading…</>
-                        : <>{qNum < totalQ ? 'Next Question →' : 'Finish Viva →'}</>}
-                    </button>
-                  </div>
+                  <Loader2 size={16} color={WARNING} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite' }} />
+                  Prof. Charles is considering your answer…
                 </div>
               )}
 
-              {error && <p style={{ fontSize: 13, color: '#DC2626', marginTop: 10, background: '#FEF2F2', padding: '10px 14px', borderRadius: 8, border: '1px solid #FECACA' }}>⚠ {error}</p>}
+              {error && <p style={{ fontSize: 13, color: DANGER, marginTop: 10, background: DANGER_DIM, padding: '10px 14px', borderRadius: 8, border: `1px solid rgba(239,68,68,0.3)` }}>⚠ {error}</p>}
             </div>
           </div>
         )}
@@ -1407,42 +1439,42 @@ export default function VivaTutor() {
           <div style={{ maxWidth: 720, margin: '0 auto' }}>
             {/* Score card */}
             <div style={{
-              background: '#FFFFFF', borderRadius: 20,
-              border: '1px solid #E2E8F0', padding: 32, textAlign: 'center', marginBottom: 18,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              background: CARD, borderRadius: 20,
+              border: `1px solid ${BORDER}`, padding: 32, textAlign: 'center', marginBottom: 18,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
             }}>
               <div style={{ width: 100, height: 100, margin: '0 auto 16px' }}>
                 <ProfessorFace talking={false} listening={false} thinking={false}
                   expression={Number(avgScore) >= 7 ? 'happy' : Number(avgScore) >= 5 ? 'neutral' : 'disappointed'} />
               </div>
-              <h2 style={{ fontSize: 24, fontWeight: 800, color: '#111827', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Viva Complete</h2>
-              <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 28px', letterSpacing: '0.02em' }}>{getTopicLabel()} · {level} · {formatTime(elapsed)}</p>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: TEXT, margin: '0 0 4px', letterSpacing: '-0.02em' }}>Viva Complete</h2>
+              <p style={{ fontSize: 13, color: TEXT_DIM, margin: '0 0 28px', letterSpacing: '0.02em' }}>{getTopicLabel()} · {level} · {formatTime(elapsed)}</p>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: 40, marginBottom: 28 }}>
                 {[
-                  { val: avgScore, label: 'Average', color: '#7C3AED' },
-                  { val: String(history.length), label: 'Questions', color: '#2563EB' },
-                  { val: formatTime(elapsed), label: 'Duration', color: '#16A34A' },
+                  { val: avgScore, label: 'Average', color: NEON },
+                  { val: String(history.length), label: 'Questions', color: '#60A5FA' },
+                  { val: formatTime(elapsed), label: 'Duration', color: SUCCESS },
                 ].map(s => (
                   <div key={s.label}>
-                    <p style={{ fontSize: 36, fontWeight: 800, color: s.color, margin: '0 0 4px', letterSpacing: '-0.03em' }}>{s.val}</p>
-                    <p style={{ fontSize: 11, color: '#94A3B8', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{s.label}</p>
+                    <p style={{ fontSize: 36, fontWeight: 800, color: s.color, margin: '0 0 4px', letterSpacing: '-0.03em', textShadow: `0 0 20px ${s.color}33` }}>{s.val}</p>
+                    <p style={{ fontSize: 11, color: TEXT_DIM, margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{s.label}</p>
                   </div>
                 ))}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 {[
-                  { label: 'Clarity', key: 'clarity', color: '#2563EB' },
-                  { label: 'Accuracy', key: 'accuracy', color: '#16A34A' },
-                  { label: 'Depth', key: 'depth', color: '#7C3AED' },
-                  { label: 'Communication', key: 'communication', color: '#D97706' },
+                  { label: 'Clarity', key: 'clarity', color: '#60A5FA' },
+                  { label: 'Accuracy', key: 'accuracy', color: SUCCESS },
+                  { label: 'Depth', key: 'depth', color: '#A78BFA' },
+                  { label: 'Communication', key: 'communication', color: WARNING },
                 ].map(m => {
                   const av = history.length > 0 ? (history.reduce((s, q) => s + (q[m.key] || 0), 0) / history.length).toFixed(1) : '—';
                   return (
-                    <div key={m.key} style={{ padding: '10px 20px', borderRadius: 12, background: '#F8FAFC', border: '1px solid #E2E8F0', textAlign: 'center', minWidth: 90 }}>
+                    <div key={m.key} style={{ padding: '10px 20px', borderRadius: 12, background: 'rgba(255,255,255,0.03)', border: `1px solid ${BORDER}`, textAlign: 'center', minWidth: 90 }}>
                       <p style={{ fontSize: 22, fontWeight: 800, color: m.color, margin: '0 0 2px' }}>{av}</p>
-                      <p style={{ fontSize: 10, color: '#94A3B8', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.label}</p>
+                      <p style={{ fontSize: 10, color: TEXT_DIM, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{m.label}</p>
                     </div>
                   );
                 })}
@@ -1453,8 +1485,8 @@ export default function VivaTutor() {
             <div style={{ marginBottom: 18 }}>
               <button onClick={() => setShowFinalFeedback(f => !f)} style={{
                 width: '100%', padding: '14px 20px', borderRadius: 14, cursor: 'pointer',
-                background: '#F5F3FF', border: '1px solid #DDD6FE',
-                color: '#7C3AED', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8,
+                background: NEON_BG, border: `1px solid ${NEON_BORDER}`,
+                color: NEON, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8,
                 justifyContent: 'space-between',
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Award size={16} /> Prof. Charles's Full Assessment</span>
@@ -1463,19 +1495,18 @@ export default function VivaTutor() {
 
               {showFinalFeedback && (
                 <div style={{
-                  marginTop: 8, background: '#FFFFFF', borderRadius: 14,
-                  border: '1px solid #E2E8F0', padding: 22,
+                  marginTop: 8, background: CARD, borderRadius: 14,
+                  border: `1px solid ${BORDER}`, padding: 22,
                   animationName: 'bubbleIn', animationDuration: '0.3s', animationTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}>
                   {isEvaluating && !summary ? (
                     <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <Loader2 size={22} color="#7C6FF7" style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite', margin: '0 auto 10px' }} />
-                      <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>Generating assessment…</p>
+                      <Loader2 size={22} color={NEON} style={{ animationName: 'spin', animationDuration: '1s', animationTimingFunction: 'linear', animationIterationCount: 'infinite', margin: '0 auto 10px' }} />
+                      <p style={{ fontSize: 13, color: TEXT_DIM, margin: 0 }}>Generating assessment…</p>
                     </div>
                   ) : summary ? (
-                    <div style={{ fontSize: 14, color: '#374151', lineHeight: 1.8 }}
-                      dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#111827">$1</strong>').replace(/\n/g, '<br/>') }} />
+                    <div style={{ fontSize: 14, color: TEXT_SEC, lineHeight: 1.8 }}
+                      dangerouslySetInnerHTML={{ __html: summary.replace(/\*\*(.*?)\*\*/g, `<strong style="color:${TEXT}">$1</strong>`).replace(/\n/g, '<br/>') }} />
                   ) : null}
                 </div>
               )}
@@ -1483,18 +1514,17 @@ export default function VivaTutor() {
 
             {/* Per-question breakdown */}
             <div style={{
-              background: '#FFFFFF', borderRadius: 16,
-              border: '1px solid #E2E8F0', padding: 22, marginBottom: 18,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              background: CARD, borderRadius: 16,
+              border: `1px solid ${BORDER}`, padding: 22, marginBottom: 18,
             }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: '#94A3B8', margin: '0 0 16px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Question Breakdown</h3>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: TEXT_DIM, margin: '0 0 16px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Question Breakdown</h3>
               {history.map((q, i) => (
                 <div key={i} style={{
-                  padding: 14, borderRadius: 12, background: '#F8FAFC',
-                  border: '1px solid #E2E8F0', marginBottom: 10,
+                  padding: 14, borderRadius: 12, background: 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${BORDER}`, marginBottom: 10,
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1E293B', flex: 1, marginRight: 10 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: TEXT, flex: 1, marginRight: 10 }}>
                       Q{i + 1}: {q.question.length > 80 ? q.question.slice(0, 80) + '…' : q.question}
                     </span>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0 }}>
@@ -1502,18 +1532,18 @@ export default function VivaTutor() {
                       <ScoreBadge score={q.score || 0} />
                     </div>
                   </div>
-                  {q.userAnswer && <p style={{ fontSize: 12, color: '#64748B', margin: '0 0 5px' }}><span style={{ color: '#475569', fontWeight: 600 }}>Your answer:</span> {q.userAnswer.slice(0, 120)}{q.userAnswer.length > 120 ? '…' : ''}</p>}
-                  {q.feedback && <p style={{ fontSize: 12, color: '#64748B', margin: 0, lineHeight: 1.5 }}>{q.feedback.slice(0, 180)}{q.feedback.length > 180 ? '…' : ''}</p>}
+                  {q.userAnswer && <p style={{ fontSize: 12, color: TEXT_DIM, margin: '0 0 5px' }}><span style={{ color: TEXT_SEC, fontWeight: 600 }}>Your answer:</span> {q.userAnswer.slice(0, 120)}{q.userAnswer.length > 120 ? '…' : ''}</p>}
+                  {q.feedback && <p style={{ fontSize: 12, color: TEXT_DIM, margin: 0, lineHeight: 1.5 }}>{q.feedback.slice(0, 180)}{q.feedback.length > 180 ? '…' : ''}</p>}
                 </div>
               ))}
             </div>
 
             <button onClick={reset} style={{
               width: '100%', padding: 15, borderRadius: 12, border: 'none',
-              background: 'linear-gradient(135deg, #7C6FF7, #3B82F6)',
-              color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              background: NEON,
+              color: BG, fontSize: 15, fontWeight: 700, cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: '0 8px 24px rgba(124,111,247,0.3)',
+              boxShadow: NEON_GLOW,
             }}>
               <RotateCcw size={16} /> Start New Session
             </button>
@@ -1534,9 +1564,9 @@ export default function VivaTutor() {
         textarea { resize: vertical; }
         select { -webkit-appearance: none; }
         ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #F1F5F9; }
-        ::-webkit-scrollbar-thumb { background: rgba(124,111,247,0.3); border-radius: 2px; }
-        textarea:focus, input:focus { border-color: #7C6FF7 !important; }
+        ::-webkit-scrollbar-track { background: ${BG}; }
+        ::-webkit-scrollbar-thumb { background: #2A2A35; border-radius: 2px; }
+        textarea:focus, input:focus { border-color: ${NEON} !important; }
       `}</style>
     </div>
   );

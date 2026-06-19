@@ -1,45 +1,67 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { getGeminiKey } from "@/lib/gemini";
+import { getGeminiKey, GEMINI_KEYS } from "@/lib/gemini";
 import { NextRequest } from "next/server";
-import { GEMINI_KEYS } from "@/lib/gemini";
-
-const genAI = new GoogleGenerativeAI(
-  getGeminiKey()
-);
 
 export async function POST(req: NextRequest) {
   try {
     if (GEMINI_KEYS.length === 0) {
-  return Response.json({
-    reply: "No Gemini API keys configured."
-  });
-}
+      return Response.json({
+        reply: "No Gemini API keys configured."
+      });
+    }
 
     const { message, history = [], systemPrompt } = await req.json();
 
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      systemInstruction: systemPrompt || "You are a helpful AI Study Assistant.",
-    });
+    const combinedHistory: { role: string; parts: { text: string }[] }[] = [];
+    
+    for (const msg of history) {
+      const role = msg.role === "user" ? "user" : "model";
+      if (combinedHistory.length > 0 && combinedHistory[combinedHistory.length - 1].role === role) {
+        combinedHistory[combinedHistory.length - 1].parts[0].text += `\n\n${msg.content}`;
+      } else {
+        combinedHistory.push({
+          role,
+          parts: [{ text: msg.content }],
+        });
+      }
+    }
 
-    // ✅ Fix: remove leading assistant messages — Gemini requires history to start with 'user'
-    const cleanHistory = history
-      .filter((_: any, i: number) => {
-        if (i === 0 && history[0].role === 'assistant') return false;
-        return true;
-      })
-      .map((m: { role: string; content: string }) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
-      }));
+    if (combinedHistory.length > 0 && combinedHistory[0].role === 'model') {
+      combinedHistory.shift();
+    }
 
-    const chat = model.startChat({ history: cleanHistory });
+    // Attempt to process request, rotating through keys if we hit a quota error (429)
+    let lastError: any = null;
+    
+    for (let i = 0; i < GEMINI_KEYS.length; i++) {
+        try {
+            const key = getGeminiKey();
+            const genAI = new GoogleGenerativeAI(key);
+            
+            const model = genAI.getGenerativeModel({
+              model: "gemini-2.5-flash",
+              systemInstruction: systemPrompt || "You are a helpful AI Study Assistant.",
+            });
 
-    const result = await chat.sendMessage(message);
-    return Response.json({ reply: result.response.text() });
+            const chat = model.startChat({ history: combinedHistory });
+            const result = await chat.sendMessage(message);
+            
+            return Response.json({ reply: result.response.text() });
+        } catch (e: any) {
+            console.error(`Gemini Error on key attempt ${i+1}:`, e.message);
+            lastError = e;
+            // If it's a 429 quota error, we continue to the next key. Otherwise throw.
+            if (e.message && e.message.includes('429')) {
+                continue;
+            }
+            break; // Stop retrying on other types of errors
+        }
+    }
+
+    return Response.json({ reply: "Sorry, I'm currently unavailable: " + (lastError?.message || "Unknown error") });
 
   } catch (error: any) {
     console.error("Gemini Error:", error.message);
-    return Response.json({ reply: "Sorry, something went wrong: " + error.message });
+    return Response.json({ reply: "Sorry, something went wrong with the AI: " + error.message });
   }
 }

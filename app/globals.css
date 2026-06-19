@@ -1,27 +1,91 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: #09090b;
-  color: #ffffff;
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Academic Copilot — Neon Dark Theme ─────────────────────────────── */
+:root {
+  /* Neon Primary */
+  --ac-neon: #00F0FF;
+  --ac-neon-hover: #00D4E0;
+  --ac-neon-light: rgba(0, 240, 255, 0.08);
+  --ac-neon-glow: 0 0 20px rgba(0, 240, 255, 0.25);
+  --ac-neon-glow-strong: 0 0 30px rgba(0, 240, 255, 0.35);
+
+  /* Backgrounds */
+  --ac-bg: #09090B;
+  --ac-bg-subtle: #0F0F13;
+  --ac-bg-card: #111116;
+  --ac-bg-elevated: #16161D;
+
+  /* Text */
+  --ac-text: #F0F2F5;
+  --ac-text-secondary: #7A8BA0;
+  --ac-text-tertiary: #4A5568;
+  --ac-text-inverse: #09090B;
+
+  /* Borders */
+  --ac-border: rgba(255, 255, 255, 0.06);
+  --ac-border-hover: rgba(255, 255, 255, 0.12);
+  --ac-border-neon: rgba(0, 240, 255, 0.15);
+
+  /* Shadows */
+  --ac-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ac-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --ac-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+
+  /* Radius — consistent everywhere */
+  --ac-radius: 16px;
+  --ac-radius-sm: 12px;
+  --ac-radius-full: 9999px;
+
+  /* Status */
+  --ac-success: #00F0FF;
+  --ac-warning: #FBBF24;
+  --ac-danger: #EF4444;
 }
 
+/* ─── Global Reset & Base ────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Glass Effect */
-.glass {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--ac-bg);
+  color: var(--ac-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Animations used in Viva Simulator */
+/* ─── Frost / Glass Utility ──────────────────────────────────────────── */
+.glass {
+  background: rgba(17, 17, 22, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--ac-border);
+  box-shadow: var(--ac-shadow-sm);
+}
+
+/* ─── Neon Utilities ─────────────────────────────────────────────────── */
+.neon-border {
+  border-color: rgba(0, 240, 255, 0.2);
+}
+
+.neon-glow {
+  box-shadow: var(--ac-neon-glow);
+}
+
+.neon-text {
+  color: var(--ac-neon);
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+/* ─── Animations (Viva Simulator) ────────────────────────────────────── */
 .animate-fade-in {
   animation: fadeIn 0.6s ease-out forwards;
 }
@@ -42,7 +106,6 @@ body {
   animation: voiceBars 1.2s infinite ease-in-out;
 }
 
-/* Keyframes */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -67,10 +130,10 @@ body {
 
 @keyframes glowPulse {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba(168, 85, 247, 0.6);
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.5);
   }
 }
 
@@ -79,15 +142,16 @@ body {
   50% { height: 100%; }
 }
 
-/* Additional useful styles */
-.border-zinc-855 {
-  border-color: #27272a;
+@keyframes neonPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
-.text-zinc-550 {
-  color: #71717a;
-}
-
+/* ─── Focus & Input Reset ────────────────────────────────────────────── */
 select:focus, input:focus, textarea:focus {
   outline: none;
 }
@@ -96,20 +160,111 @@ select:focus, input:focus, textarea:focus {
   filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.5));
 }
 
-/* Scrollbar */
+/* ─── Scrollbar (Dark Neon) ──────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #18181b;
+  background: #0F0F13;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #2A2A35;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: #3A3A48;
+}
+
+/* ─── Shadcn Theme Tokens (Dark Neon) ────────────────────────────────── */
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.1 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.14 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0 0);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.85 0.15 195);
+  --primary-foreground: oklch(0.1 0 0);
+  --secondary: oklch(0.18 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.18 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --accent: oklch(0.18 0 0);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.85 0.15 195);
+  --chart-1: oklch(0.85 0.15 195);
+  --chart-2: oklch(0.6 0 0);
+  --chart-3: oklch(0.45 0 0);
+  --chart-4: oklch(0.35 0 0);
+  --chart-5: oklch(0.25 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.12 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.85 0.15 195);
+  --sidebar-primary-foreground: oklch(0.1 0 0);
+  --sidebar-accent: oklch(0.18 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.85 0.15 195);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }
